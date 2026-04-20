@@ -61,3 +61,9 @@ start().catch((err) => {
   process.exit(1);
 });
 
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "Backend is running successfully 🚀",
+    status: "ok"
+  });
+});
