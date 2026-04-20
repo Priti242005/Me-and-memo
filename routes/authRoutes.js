@@ -7,11 +7,10 @@ const { signAccessToken } = require('../config/jwt');
 
 const router = express.Router();
 
-// Backwards-compatible Auth: register + login (existing app)
+// ================== NORMAL AUTH ==================
 router.post('/register', asyncHandler(authController.register));
 router.post('/login', asyncHandler(authController.login));
 
-// New secure auth flows
 router.post('/signup', asyncHandler(authController.signup));
 router.post('/verify-email', asyncHandler(authController.verifyEmail));
 
@@ -21,14 +20,28 @@ router.post('/verify-login-otp', asyncHandler(authController.verifyLoginOtp));
 router.post('/forgot-password', asyncHandler(authController.forgotPassword));
 router.post('/reset-password', asyncHandler(authController.resetPassword));
 
-// Google OAuth (enabled only when env vars are present)
+
+// ================== GOOGLE AUTH ==================
+
+// 🔥 STEP 1: Redirect to Google
 router.get('/google', (req, res, next) => {
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_CALLBACK_URL) {
+  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } = process.env;
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_CALLBACK_URL) {
     return next(new AppError('Google login is not configured', 503));
   }
-  return passport.authenticate('google', { scope: ['profile', 'email'], session: false })(req, res, next);
+
+  console.log("👉 Redirecting to Google OAuth");
+  console.log("👉 CALLBACK URL:", GOOGLE_CALLBACK_URL);
+
+  return passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false,
+  })(req, res, next);
 });
 
+
+// 🔥 STEP 2: Callback from Google
 router.get(
   '/google/callback',
   passport.authenticate('google', {
@@ -36,12 +49,28 @@ router.get(
     failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?oauth=failed`,
   }),
   (req, res) => {
-    const user = req.user;
-    const token = signAccessToken(user._id);
-    const redirectBase = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-    return res.redirect(`${redirectBase}/oauth-success?token=${encodeURIComponent(token)}`);
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.redirect(`${process.env.FRONTEND_URL}/login?oauth=failed`);
+      }
+
+      const token = signAccessToken(user._id);
+
+      const redirectBase = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+
+      console.log("✅ Google Login Success");
+      console.log("👉 Redirecting to:", redirectBase);
+
+      return res.redirect(
+        `${redirectBase}/oauth-success?token=${encodeURIComponent(token)}`
+      );
+    } catch (err) {
+      console.error("❌ OAuth Callback Error:", err);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?oauth=failed`);
+    }
   }
 );
 
 module.exports = router;
-
