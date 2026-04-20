@@ -63,7 +63,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
-app.get("/health", (req, res) => {
-  res.json({ status: "healthy" });
-});
+
 
