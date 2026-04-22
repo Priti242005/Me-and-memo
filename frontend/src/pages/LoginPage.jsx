@@ -95,7 +95,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = getGoogleAuthUrl();
+              window.location.href = "https://me-and-memo.onrender.com/auth/google";
             }}
             className="w-full py-2.5 rounded-xl border border-gray-200/80 dark:border-gray-800 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800/40 transition"
           >
