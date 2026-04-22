@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
+  likePost,
+  unlikePost,
+  commentPost,
+  addCollaborators,
+  deletePost,
+} from '../services/postService';
+import {
   getProfile,
   follow,
   unfollow,
@@ -11,6 +18,7 @@ import {
   getFollowing,
   updateMe,
 } from '../services/userService';
+import PostCard from '../components/PostCard';
 import UserListModal from '../components/UserListModal';
 import { addStoryToHighlight, createHighlight, getHighlights } from '../services/highlightService';
 import StoryViewer from '../components/StoryViewer';
@@ -42,6 +50,7 @@ export default function ProfilePage() {
   const [followError, setFollowError] = useState(null);
   const [requested, setRequested] = useState(false);
   const [listModal, setListModal] = useState({ open: false, title: '', users: [] });
+  const [selectedPost, setSelectedPost] = useState(null);
   const [highlights, setHighlights] = useState([]);
   const [activeHighlight, setActiveHighlight] = useState(null);
   const [storyGroups, setStoryGroups] = useState([]);
@@ -295,6 +304,13 @@ export default function ProfilePage() {
 
   const hasActiveStory = storyGroups.some((g) => (g.stories || []).length > 0);
 
+  function replacePost(updatedPost) {
+    setProfilePosts((prev) =>
+      prev.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+    );
+    setSelectedPost((prev) => (prev?._id === updatedPost._id ? updatedPost : prev));
+  }
+
   return (
     <div className="feed-stack">
       <div className="app-panel profile-hero">
@@ -458,7 +474,12 @@ export default function ProfilePage() {
       {!showPrivateGate && profilePosts.length > 0 ? (
         <div className="profile-grid">
           {profilePosts.map((post) => (
-            <div key={post._id} className="profile-tile">
+            <button
+              key={post._id}
+              type="button"
+              className="profile-tile"
+              onClick={() => setSelectedPost(post)}
+            >
               {isVideoUrl(post.mediaUrl) ? (
                 <video src={post.mediaUrl} className="profile-tile-media" muted playsInline />
               ) : (
@@ -468,7 +489,7 @@ export default function ProfilePage() {
                 <div>{post.caption || 'Memory post'}</div>
                 <div className="mt-1 text-xs">{post.likes?.length || 0} likes | {post.comments?.length || 0} comments</div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       ) : null}
@@ -479,6 +500,50 @@ export default function ProfilePage() {
         users={listModal.users}
         onClose={() => setListModal({ open: false, title: '', users: [] })}
       />
+
+      {selectedPost ? (
+        <div className="fixed inset-0 z-[70] bg-black/70 flex items-center justify-center p-4">
+          <div className="profile-post-modal">
+            <div className="profile-post-modal-header">
+              <div className="font-semibold text-white">Post</div>
+              <button
+                type="button"
+                onClick={() => setSelectedPost(null)}
+                className="app-link"
+              >
+                Close
+              </button>
+            </div>
+            <PostCard
+              post={selectedPost}
+              currentUserId={user?.id}
+              onLike={async (postId) => {
+                const data = await likePost(postId);
+                replacePost(data.post || selectedPost);
+              }}
+              onUnlike={async (postId) => {
+                const data = await unlikePost(postId);
+                replacePost(data.post || selectedPost);
+              }}
+              onComment={async (postId, text) => {
+                const data = await commentPost(postId, text);
+                replacePost(data.post || selectedPost);
+              }}
+              onAddCollaborators={async (postId, collaboratorUsernames) => {
+                const data = await addCollaborators(postId, collaboratorUsernames);
+                replacePost(data.post || selectedPost);
+                return data.post || data;
+              }}
+              onDelete={async (postId) => {
+                await deletePost(postId);
+                setProfilePosts((prev) => prev.filter((p) => p._id !== postId));
+                setSelectedPost(null);
+              }}
+              onPostUpdated={replacePost}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {activeHighlight ? (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">

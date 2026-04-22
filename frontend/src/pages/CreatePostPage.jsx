@@ -62,68 +62,65 @@ export default function CreatePostPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="app-panel p-5">
+    <div className="feed-stack">
+      <div className="app-panel feed-header-card">
         <h2 className="app-section-title">Create Post</h2>
         <p className="app-section-subtitle">
-          Share a memory now, or schedule it as a time capsule.
+          Upload your media, write a caption, and optionally schedule it as a time capsule.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="app-panel p-5">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2 text-white">
-              Upload {mediaKind ? mediaKind : 'media'} (image/video)
+      <form onSubmit={handleSubmit} className="app-panel create-post-shell">
+        <div className="create-post-grid">
+          <div className="create-post-preview">
+            <div className="create-post-block-title">Media Preview</div>
+            <label className="create-post-upload">
+              <input
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {previewUrl ? (
+                <div className="create-post-preview-frame">
+                  {mediaKind === 'video' ? (
+                    <video src={previewUrl} className="create-post-media" controls playsInline />
+                  ) : (
+                    <img src={previewUrl} alt="preview" className="create-post-media" />
+                  )}
+                </div>
+              ) : (
+                <div className="create-post-empty">
+                  <div className="create-post-empty-icon">+</div>
+                  <div className="create-post-empty-title">Choose image or video</div>
+                  <div className="create-post-empty-note">Tap here to upload your next memory.</div>
+                </div>
+              )}
             </label>
-            <input
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-500"
-            />
-
-            {previewUrl ? (
-              <div className="mt-4 rounded-2xl overflow-hidden border border-white/10">
-                {mediaKind === 'video' ? (
-                  <video
-                    src={previewUrl}
-                    className="w-full max-h-[360px] object-cover"
-                    controls
-                    playsInline
-                  />
-                ) : (
-                  <img
-                    src={previewUrl}
-                    alt="preview"
-                    className="w-full max-h-[360px] object-cover"
-                  />
-                )}
-              </div>
-            ) : null}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2 text-white">Caption</label>
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Write something..."
-              maxLength={1000}
-              className="app-soft-textarea text-sm"
-            />
-            <div className="text-xs app-muted mt-1">{caption.length}/1000</div>
+          <div className="create-post-form">
+            <div className="create-post-card">
+              <div className="create-post-block-title">Caption</div>
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Write something memorable..."
+                maxLength={1000}
+                className="app-soft-textarea"
+              />
+              <div className="text-xs app-muted mt-2">{caption.length}/1000</div>
+            </div>
 
-            <div className="mt-3 space-y-2">
-              <div className="text-xs font-semibold app-muted">
-                Caption ideas (optional, no account needed)
-              </div>
+            <div className="create-post-card">
+              <div className="create-post-block-title">Caption ideas</div>
+              <p className="create-post-help">Describe the vibe and generate caption options you can reuse instantly.</p>
               <input
                 type="text"
                 value={captionTopic}
                 onChange={(e) => setCaptionTopic(e.target.value)}
-                placeholder="Describe your idea or topic..."
-                className="app-soft-input text-sm"
+                placeholder="Example: sunset trip with friends"
+                className="app-soft-input"
               />
               <button
                 type="button"
@@ -141,21 +138,19 @@ export default function CreatePostPage() {
                     setCaptionLoading(false);
                   }
                 }}
-                className="app-muted-button disabled:opacity-60 text-sm transition"
+                className="app-muted-button"
               >
                 {captionLoading ? 'Generating...' : 'Generate Caption'}
               </button>
+
               {captionOptions.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="text-xs app-muted">
-                    Click an option to use it as your caption:
-                  </div>
+                <div className="create-post-options">
                   {captionOptions.map((line, i) => (
                     <button
                       key={`${i}-${line.slice(0, 12)}`}
                       type="button"
                       onClick={() => setCaption(line)}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-pink-500/30 bg-pink-500/5 hover:bg-pink-500/10 text-sm transition text-white"
+                      className="create-post-option"
                     >
                       {line}
                     </button>
@@ -163,54 +158,53 @@ export default function CreatePostPage() {
                 </div>
               ) : null}
             </div>
-          </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <div className="text-sm font-medium mb-2 text-white">Schedule post (time capsule)</div>
-            <p className="text-xs app-muted mb-3">
-              Pick a date and time. The post stays hidden until then, then appears in feeds automatically.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium mb-1 text-white">Date</label>
-                <input
-                  type="date"
-                  value={unlockDate}
-                  onChange={(e) => setUnlockDate(e.target.value)}
-                  className="app-soft-input text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1 text-white">Time (colon or dot)</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="e.g. 9:30 or 11.28"
-                  value={unlockTime}
-                  onChange={(e) => setUnlockTime(e.target.value)}
-                  className="app-soft-input text-sm"
-                />
-                <p className="text-[11px] app-muted mt-1">11:28 and 11.28 are both accepted.</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1 text-white">AM / PM</label>
-                <select
-                  value={unlockAmPm}
-                  onChange={(e) => setUnlockAmPm(e.target.value)}
-                  className="app-soft-select text-sm"
-                >
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
-                </select>
+            <div className="create-post-card">
+              <div className="create-post-block-title">Schedule post</div>
+              <p className="create-post-help">
+                Leave this empty to publish now, or choose a future date and time to unlock it later.
+              </p>
+              <div className="create-post-schedule">
+                <div>
+                  <label className="story-field-label">Date</label>
+                  <input
+                    type="date"
+                    value={unlockDate}
+                    onChange={(e) => setUnlockDate(e.target.value)}
+                    className="app-soft-input"
+                  />
+                </div>
+                <div>
+                  <label className="story-field-label">Time</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="e.g. 9:30 or 11.28"
+                    value={unlockTime}
+                    onChange={(e) => setUnlockTime(e.target.value)}
+                    className="app-soft-input"
+                  />
+                </div>
+                <div>
+                  <label className="story-field-label">AM / PM</label>
+                  <select
+                    value={unlockAmPm}
+                    onChange={(e) => setUnlockAmPm(e.target.value)}
+                    className="app-soft-select"
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
               </div>
             </div>
+
+            {error ? <div className="text-sm app-danger">{error}</div> : null}
+
+            <button type="submit" disabled={submitting} className="app-soft-button">
+              {submitting ? 'Uploading...' : 'Publish Post'}
+            </button>
           </div>
-
-          {error ? <div className="text-sm app-danger">{error}</div> : null}
-
-          <button type="submit" disabled={submitting} className="w-full app-soft-button">
-            {submitting ? 'Uploading...' : 'Post'}
-          </button>
         </div>
       </form>
     </div>
