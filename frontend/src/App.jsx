@@ -18,6 +18,8 @@ import { ThemeProvider } from './hooks/useTheme';
 import ProtectedLayout from './components/ProtectedLayout';
 import Layout from './components/Layout';
 
+console.log("APP RENDERED");
+
 export default function App() {
   return (
     <ThemeProvider>
