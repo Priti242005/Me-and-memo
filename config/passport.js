@@ -5,11 +5,14 @@ const User = require('../models/User');
 function getGoogleConfig() {
   const clientID = (process.env.GOOGLE_CLIENT_ID || '').trim();
   const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
-  const callbackURL = (process.env.GOOGLE_CALLBACK_URL || '').trim();
+
+  // 🔥 Remove trailing slash (VERY IMPORTANT)
+  let callbackURL = (process.env.GOOGLE_CALLBACK_URL || '').trim();
+  callbackURL = callbackURL.replace(/\/$/, '');
 
   console.log("🔵 Google OAuth Config:");
   console.log("CLIENT_ID:", clientID ? "✅ Present" : "❌ Missing");
-  console.log("CALLBACK_URL:", callbackURL);
+  console.log("CALLBACK_URL USED:", callbackURL);
 
   return { clientID, clientSecret, callbackURL };
 }
@@ -29,20 +32,15 @@ function configurePassport() {
         clientSecret,
         callbackURL,
 
-        // 🔥 IMPORTANT (forces correct redirect handling)
+        // 🔥 Required for Render / proxies
         proxy: true,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          const googleId = String(profile.id || '');
-
-          const email =
-            profile.emails?.[0]?.value?.toLowerCase().trim() || '';
-
-          const displayName = String(profile.displayName || '').trim();
-
-          const photo =
-            profile.photos?.[0]?.value || '';
+          const googleId = profile.id;
+          const email = profile.emails?.[0]?.value?.toLowerCase().trim();
+          const displayName = profile.displayName || '';
+          const photo = profile.photos?.[0]?.value || '';
 
           if (!googleId || !email) {
             return done(null, false);
@@ -54,8 +52,7 @@ function configurePassport() {
 
           if (!user) {
             const baseUsername =
-              email
-                .split('@')[0]
+              email.split('@')[0]
                 .replace(/[^a-z0-9_]/gi, '')
                 .slice(0, 18) || 'user';
 
