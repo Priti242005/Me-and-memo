@@ -16,105 +16,109 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(Boolean(getStoredToken()));
   const [authError, setAuthError] = useState(null);
-  const hydratedOnMount = useRef(false);
+  const inFlightRef = useRef(null);
+  const inFlightTokenRef = useRef(null);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    inFlightRef.current = null;
+    inFlightTokenRef.current = null;
   }, []);
 
-  const hydrateAuth = useCallback(
-    async (nextToken) => {
-      if (!nextToken) {
+  const refreshUser = useCallback(
+    async (overrideToken) => {
+      const activeToken = overrideToken || localStorage.getItem(TOKEN_KEY);
+
+      if (!activeToken) {
         clearSession();
         setLoading(false);
         return null;
       }
 
-      localStorage.setItem(TOKEN_KEY, nextToken);
-      setToken(nextToken);
+      if (inFlightRef.current && inFlightTokenRef.current === activeToken) {
+        return inFlightRef.current;
+      }
+
       setLoading(true);
       setAuthError(null);
+      inFlightTokenRef.current = activeToken;
 
-      try {
-        const payload = await getMe();
-        const nextUser = payload.user || payload;
-        setUser(nextUser);
-        return nextUser;
-      } catch (error) {
-        clearSession();
-        setAuthError(error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
+      const request = getMe()
+        .then((payload) => {
+          const nextUser = payload.user || payload;
+          setUser(nextUser);
+          setToken(activeToken);
+          return nextUser;
+        })
+        .catch((error) => {
+          clearSession();
+          setAuthError(error);
+          throw error;
+        })
+        .finally(() => {
+          if (inFlightRef.current === request) {
+            inFlightRef.current = null;
+            inFlightTokenRef.current = null;
+          }
+          setLoading(false);
+        });
+
+      inFlightRef.current = request;
+      return request;
     },
     [clearSession]
   );
 
-  const refreshUser = useCallback(async () => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-
-    if (!storedToken) {
-      clearSession();
-      setLoading(false);
-      return null;
-    }
-
-    setLoading(true);
-    setAuthError(null);
-
-    try {
-      const payload = await getMe();
-      const nextUser = payload.user || payload;
-      setUser(nextUser);
-      setToken(storedToken);
-      return nextUser;
-    } catch (error) {
-      clearSession();
-      setAuthError(error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [clearSession]);
-
   useEffect(() => {
-    if (hydratedOnMount.current) return;
-    hydratedOnMount.current = true;
-
     if (!token) {
+      setUser(null);
       setLoading(false);
       return;
     }
 
-    refreshUser().catch(() => {});
+    refreshUser(token).catch(() => {});
   }, [token, refreshUser]);
+
+  const setTokenDirect = useCallback((newToken) => {
+    if (!newToken) {
+      clearSession();
+      setLoading(false);
+      return;
+    }
+
+    localStorage.setItem(TOKEN_KEY, newToken);
+    setToken(newToken);
+    setUser(null);
+    setAuthError(null);
+    setLoading(true);
+  }, [clearSession]);
 
   const login = useCallback(
     async (payload) => {
       setAuthError(null);
       const res = await loginRequest(payload);
-      await hydrateAuth(res.token);
+      localStorage.setItem(TOKEN_KEY, res.token);
+      setToken(res.token);
+      setUser(null);
+      await refreshUser(res.token);
       return res;
     },
-    [hydrateAuth]
+    [refreshUser]
   );
 
   const register = useCallback(
     async (payload) => {
       setAuthError(null);
       const res = await registerRequest(payload);
-      await hydrateAuth(res.token);
+      localStorage.setItem(TOKEN_KEY, res.token);
+      setToken(res.token);
+      setUser(null);
+      await refreshUser(res.token);
       return res;
     },
-    [hydrateAuth]
-  );
-
-  const setTokenDirect = useCallback(
-    async (newToken) => hydrateAuth(newToken),
-    [hydrateAuth]
+    [refreshUser]
   );
 
   const logout = useCallback(() => {
