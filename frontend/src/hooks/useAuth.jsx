@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { login, register } from '../services/authService';
+import { login as loginRequest, register as registerRequest } from '../services/authService';
 import { getMe } from '../services/userService';
 
 const AuthContext = createContext(null);
@@ -62,8 +62,23 @@ export function AuthProvider({ children }) {
       return null;
     }
 
-    return hydrateAuth(storedToken);
-  }, [clearSession, hydrateAuth]);
+    setLoading(true);
+    setAuthError(null);
+
+    try {
+      const payload = await getMe();
+      const nextUser = payload.user || payload;
+      setUser(nextUser);
+      setToken(storedToken);
+      return nextUser;
+    } catch (error) {
+      clearSession();
+      setAuthError(error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [clearSession]);
 
   useEffect(() => {
     if (hydratedOnMount.current) return;
@@ -77,38 +92,50 @@ export function AuthProvider({ children }) {
     refreshUser().catch(() => {});
   }, [token, refreshUser]);
 
+  const login = useCallback(
+    async (payload) => {
+      setAuthError(null);
+      const res = await loginRequest(payload);
+      await hydrateAuth(res.token);
+      return res;
+    },
+    [hydrateAuth]
+  );
+
+  const register = useCallback(
+    async (payload) => {
+      setAuthError(null);
+      const res = await registerRequest(payload);
+      await hydrateAuth(res.token);
+      return res;
+    },
+    [hydrateAuth]
+  );
+
+  const setTokenDirect = useCallback(
+    async (newToken) => hydrateAuth(newToken),
+    [hydrateAuth]
+  );
+
+  const logout = useCallback(() => {
+    clearSession();
+    setLoading(false);
+  }, [clearSession]);
+
   const value = useMemo(
     () => ({
       token,
       user,
       loading,
       authError,
-
-      login: async (payload) => {
-        setAuthError(null);
-        const res = await login(payload);
-        await hydrateAuth(res.token);
-        return res;
-      },
-
-      register: async (payload) => {
-        setAuthError(null);
-        const res = await register(payload);
-        await hydrateAuth(res.token);
-        return res;
-      },
-
-      setTokenDirect: async (newToken) => hydrateAuth(newToken),
-
-      logout: () => {
-        clearSession();
-        setLoading(false);
-      },
-
+      login,
+      register,
+      setTokenDirect,
+      logout,
       refreshUser,
       setAuthError,
     }),
-    [token, user, loading, authError, hydrateAuth, clearSession, refreshUser]
+    [token, user, loading, authError, login, register, setTokenDirect, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
