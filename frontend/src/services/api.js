@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
+  (
+    import.meta.env.VITE_BACKEND_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    'http://localhost:5000'
+  ).replace(/\/$/, '');
 
 // Backend is mounted under `/api` (Express `app.use('/api/*', ...)`).
 const api = axios.create({
@@ -25,4 +29,3 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
-
