@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import '../pages/auth.css';
 
 export default function ProtectedLayout() {
   const { token, loading } = useAuth();
@@ -10,8 +11,13 @@ export default function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600 dark:text-gray-300">
-        Loading...
+      <div className="auth-page">
+        <div className="auth-card" style={{ textAlign: 'center' }}>
+          <h1 className="auth-title" style={{ marginBottom: 12 }}>Loading</h1>
+          <p className="auth-subtitle">
+            Preparing your account, stories, and feed...
+          </p>
+        </div>
       </div>
     );
   }
