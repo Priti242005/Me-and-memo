@@ -73,4 +73,6 @@ router.get(
   }
 );
 
+console.log("🔥 FRONTEND_URL USED:", process.env.FRONTEND_URL);
+
 module.exports = router;
