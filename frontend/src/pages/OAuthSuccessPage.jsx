@@ -1,27 +1,48 @@
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 export default function OAuthSuccessPage() {
   const navigate = useNavigate();
-  const { search } = useLocation();
+  const { setTokenDirect } = useAuth();
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const params = new URLSearchParams(search);
-    const token = params.get("token");
+    let cancelled = false;
 
-    console.log("TOKEN:", token); // DEBUG
+    async function completeOAuthLogin() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
 
-    if (token) {
-      localStorage.setItem("token", token);
-      navigate("/");
-    } else {
-      navigate("/login");
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      try {
+        await setTokenDirect(token);
+
+        if (!cancelled) {
+          navigate('/', { replace: true });
+        }
+      } catch {
+        if (!cancelled) {
+          setError('We could not finish signing you in. Please try again.');
+          navigate('/login', { replace: true });
+        }
+      }
     }
-  }, [search, navigate]);
+
+    completeOAuthLogin();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, setTokenDirect]);
 
   return (
-    <div style={{ color: "white", fontSize: "30px" }}>
-      OAuth Loading...
+    <div style={{ color: 'white', padding: '20px' }}>
+      {error || 'Logging you in...'}
     </div>
   );
 }

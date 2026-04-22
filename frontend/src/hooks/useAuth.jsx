@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { login, register } from '../services/authService';
 import { getMe } from '../services/userService';
 
@@ -12,37 +12,70 @@ function getStoredToken() {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(getStoredToken());
+  const [token, setToken] = useState(() => getStoredToken());
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(getStoredToken()));
   const [authError, setAuthError] = useState(null);
+  const hydratedOnMount = useRef(false);
 
-  const loadUser = useCallback(async () => {
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  const hydrateAuth = useCallback(
+    async (nextToken) => {
+      if (!nextToken) {
+        clearSession();
+        setLoading(false);
+        return null;
+      }
+
+      localStorage.setItem(TOKEN_KEY, nextToken);
+      setToken(nextToken);
+      setLoading(true);
+      setAuthError(null);
+
+      try {
+        const payload = await getMe();
+        const nextUser = payload.user || payload;
+        setUser(nextUser);
+        return nextUser;
+      } catch (error) {
+        clearSession();
+        setAuthError(error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [clearSession]
+  );
+
+  const refreshUser = useCallback(async () => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+
+    if (!storedToken) {
+      clearSession();
+      setLoading(false);
+      return null;
+    }
+
+    return hydrateAuth(storedToken);
+  }, [clearSession, hydrateAuth]);
+
+  useEffect(() => {
+    if (hydratedOnMount.current) return;
+    hydratedOnMount.current = true;
+
     if (!token) {
-      setUser(null);
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      setAuthError(null);
-      const payload = await getMe();
-      // API returns { user: {...} }
-      setUser(payload.user || payload);
-    } catch {
-      // Token is likely invalid/expired.
-      localStorage.removeItem(TOKEN_KEY);
-      setToken(null);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    loadUser();
-  }, [loadUser]);
+    refreshUser().catch(() => {});
+  }, [token, refreshUser]);
 
   const value = useMemo(
     () => ({
@@ -50,29 +83,32 @@ export function AuthProvider({ children }) {
       user,
       loading,
       authError,
+
       login: async (payload) => {
         setAuthError(null);
         const res = await login(payload);
-        localStorage.setItem(TOKEN_KEY, res.token);
-        setToken(res.token);
+        await hydrateAuth(res.token);
         return res;
       },
+
       register: async (payload) => {
         setAuthError(null);
         const res = await register(payload);
-        localStorage.setItem(TOKEN_KEY, res.token);
-        setToken(res.token);
+        await hydrateAuth(res.token);
         return res;
       },
+
+      setTokenDirect: async (newToken) => hydrateAuth(newToken),
+
       logout: () => {
-        localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
-        setUser(null);
+        clearSession();
+        setLoading(false);
       },
-      refreshUser: loadUser,
+
+      refreshUser,
       setAuthError,
     }),
-    [token, user, loading, authError, loadUser]
+    [token, user, loading, authError, hydrateAuth, clearSession, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -83,4 +119,3 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
-
