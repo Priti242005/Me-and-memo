@@ -1,16 +1,10 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import './app-ui.css';
 
 function normalizeId(id) {
   return id ? String(id) : '';
 }
 
-/**
- * Instagram-like reel card:
- * - Full-height video with scroll-snap
- * - Autoplay/pause based on visibility (controlled by parent via `isActive`)
- * - Like + comment overlay UI
- * - Video src is only set when `shouldLoad` for performance
- */
 const ReelCard = forwardRef(function ReelCard(
   {
     reel,
@@ -33,18 +27,14 @@ const ReelCard = forwardRef(function ReelCard(
     return (reel.likes || []).some((u) => normalizeId(u) === me);
   }, [reel.likes, currentUserId]);
 
-  // Autoplay/pause when active.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isActive && shouldLoad) {
-      // Autoplay should be allowed because video is muted.
       const playPromise = video.play();
       if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {
-          // If autoplay fails, user can still start it manually.
-        });
+        playPromise.catch(() => {});
       }
     } else {
       video.pause();
@@ -53,8 +43,7 @@ const ReelCard = forwardRef(function ReelCard(
 
   async function handleSubmitComment() {
     const text = commentText.trim();
-    if (!text) return;
-    if (text.length > 500) return;
+    if (!text || text.length > 500) return;
 
     try {
       setSubmitting(true);
@@ -73,9 +62,8 @@ const ReelCard = forwardRef(function ReelCard(
   return (
     <section
       ref={ref}
-      className="snap-start h-[70svh] min-h-[420px] bg-black relative overflow-hidden rounded-2xl border border-gray-200/70 dark:border-gray-800"
+      className="snap-start h-[70svh] min-h-[420px] bg-black relative overflow-hidden rounded-[20px]"
     >
-      {/* Video */}
       <video
         ref={videoRef}
         src={shouldLoad ? reel.mediaUrl : undefined}
@@ -83,12 +71,10 @@ const ReelCard = forwardRef(function ReelCard(
         muted
         loop
         playsInline
-        // Overlay UI should handle interactions; avoid native controls for Instagram feel.
         controls={false}
         className="w-full h-full object-cover"
       />
 
-      {/* Top overlay */}
       <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between pointer-events-none">
         <div className="flex items-center gap-3 min-w-0">
           <img
@@ -109,12 +95,10 @@ const ReelCard = forwardRef(function ReelCard(
         </div>
       </div>
 
-      {/* Bottom caption + actions */}
       <div className="absolute inset-x-0 bottom-0 p-4">
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
 
         <div className="relative flex items-end justify-between gap-4">
-          {/* Caption */}
           <div className="min-w-0">
             {reel.caption ? (
               <div className="text-white text-sm font-medium drop-shadow-sm">
@@ -136,7 +120,6 @@ const ReelCard = forwardRef(function ReelCard(
             ) : null}
           </div>
 
-          {/* Actions (right side) */}
           <div className="flex flex-col items-end gap-3">
             <button
               type="button"
@@ -144,10 +127,7 @@ const ReelCard = forwardRef(function ReelCard(
               className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 hover:bg-white/15 transition text-white text-sm font-semibold backdrop-blur"
               aria-label={likedByMe ? 'Unlike reel' : 'Like reel'}
             >
-              <span className={likedByMe ? 'text-pink-300' : 'text-white'}>
-                ♥
-              </span>
-              <span className="hidden sm:inline">{likedByMe ? 'Liked' : 'Like'}</span>
+              <span>{likedByMe ? 'Liked' : 'Like'}</span>
             </button>
 
             <button
@@ -156,13 +136,11 @@ const ReelCard = forwardRef(function ReelCard(
               className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 hover:bg-white/15 transition text-white text-sm font-semibold backdrop-blur"
               aria-label="Toggle comments"
             >
-              <span>💬</span>
-              <span className="hidden sm:inline">Comment</span>
+              <span>Comment</span>
             </button>
           </div>
         </div>
 
-        {/* Comment input overlay */}
         {commentOpen ? (
           <div className="relative mt-4 flex items-center gap-2 pointer-events-auto">
             <input
@@ -188,4 +166,3 @@ const ReelCard = forwardRef(function ReelCard(
 });
 
 export default ReelCard;
-

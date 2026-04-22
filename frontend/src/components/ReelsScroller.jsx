@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ReelCard from './ReelCard';
+import './app-ui.css';
 
 /**
  * Vertical scrollable reels scroller.
@@ -61,7 +62,7 @@ export default function ReelsScroller({
   return (
     <div
       ref={scrollerRef}
-      className="h-[70svh] overflow-y-auto snap-y snap-mandatory scroll-smooth overscroll-contain rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-gray-50/10 dark:bg-gray-900/20"
+      className="h-[70svh] overflow-y-auto snap-y snap-mandatory scroll-smooth overscroll-contain app-panel p-2"
     >
       {reels.map((reel, idx) => (
         <div
@@ -86,4 +87,3 @@ export default function ReelsScroller({
     </div>
   );
 }
-

@@ -13,6 +13,7 @@ import {
   deletePost,
 } from '../services/postService';
 import { getStories } from '../services/storyService';
+import '../components/app-ui.css';
 
 export default function HomeFeedPage() {
   const { user } = useAuth();
@@ -54,7 +55,6 @@ export default function HomeFeedPage() {
 
   useEffect(() => {
     fetchFeed();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function HomeFeedPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       <StoryStrip
         groups={storyGroups}
         onOpenGroup={(idx) => {
@@ -102,24 +102,17 @@ export default function HomeFeedPage() {
         onSuccess={afterStoryCreated}
       />
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Home Feed</h2>
+      <div className="app-panel p-5">
+        <h2 className="app-section-title">Home Feed</h2>
+        <p className="app-section-subtitle">
+          Catch up on new posts, memories, and story updates.
+        </p>
       </div>
 
-      {loading ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
-          Loading posts...
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="text-red-600 dark:text-red-300 text-center py-6">
-          {error}
-        </div>
-      ) : null}
-
+      {loading ? <div className="text-center py-10 app-muted">Loading posts...</div> : null}
+      {error ? <div className="app-danger text-center py-6">{error}</div> : null}
       {!loading && !error && posts.length === 0 ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
+        <div className="text-center py-10 app-muted">
           No posts yet. Follow people and create your first post.
         </div>
       ) : null}

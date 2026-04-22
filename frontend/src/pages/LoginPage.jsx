@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getGoogleAuthUrl } from '../services/authService';
+import './auth.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -44,86 +45,81 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[calc(100svh-56px)] flex items-center justify-center px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white dark:bg-gray-900/30 border border-gray-200/70 dark:border-gray-800 rounded-2xl p-6"
-      >
-        <h1 className="text-2xl font-bold mb-2">Login</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+    <div className="auth-page">
+      <form onSubmit={handleSubmit} className="auth-card auth-form">
+        <h1 className="auth-title">Login</h1>
+        <p className="auth-subtitle">
           Sign in to MeAndMemo to share posts and reels.
         </p>
 
-        <div className="space-y-3">
-          <label className="block">
-            <span className="text-sm font-medium">Email or Username</span>
-            <input
-              value={emailOrUsername}
-              onChange={(e) => setEmailOrUsername(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="you@example.com or username"
-              autoComplete="username"
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Email or Username</span>
+          <input
+            value={emailOrUsername}
+            onChange={(e) => setEmailOrUsername(e.target.value)}
+            className="auth-input"
+            placeholder="you@example.com or username"
+            autoComplete="username"
+          />
+        </label>
 
-          <label className="block">
-            <span className="text-sm font-medium">Password</span>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Password</span>
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            className="auth-input"
+            placeholder="........"
+            autoComplete="current-password"
+          />
+        </label>
 
-          {localError || authError ? (
-            <div className="text-sm text-red-600 dark:text-red-300">
-              {localError || authError?.message || String(authError)}
-            </div>
-          ) : null}
+        {localError || authError ? (
+          <p className="auth-message error">
+            {localError || authError?.message || String(authError)}
+          </p>
+        ) : null}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-2.5 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-500 disabled:opacity-60 transition"
-          >
-            {submitting ? 'Signing in...' : 'Login'}
-          </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="auth-button primary"
+        >
+          {submitting ? 'Signing in...' : 'Login'}
+        </button>
 
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = getGoogleAuthUrl();
+          }}
+          className="auth-button secondary"
+        >
+          Continue with Google
+        </button>
+
+        <div className="auth-row">
           <button
             type="button"
-            onClick={() => {
-              window.location.href = getGoogleAuthUrl();
-            }}
-            className="w-full py-2.5 rounded-xl border border-gray-200/80 dark:border-gray-800 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800/40 transition"
+            className="auth-link"
+            onClick={() => navigate('/login-otp')}
           >
-            Continue with Google
+            Login with OTP
           </button>
-
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-            <button
-              type="button"
-              className="text-pink-600 dark:text-pink-300 font-medium hover:underline"
-              onClick={() => navigate('/login-otp')}
-            >
-              Login with OTP
-            </button>
-            <button
-              type="button"
-              className="text-pink-600 dark:text-pink-300 font-medium hover:underline"
-              onClick={() => navigate('/forgot-password')}
-            >
-              Forgot Password?
-            </button>
-          </div>
+          <button
+            type="button"
+            className="auth-link"
+            onClick={() => navigate('/forgot-password')}
+          >
+            Forgot Password?
+          </button>
         </div>
 
-        <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-          Don&apos;t have an account?{' '}
+        <div className="auth-footer">
+          Don&apos;t have an account?
           <span
-            className="text-pink-600 dark:text-pink-300 cursor-pointer font-medium hover:underline"
+            className="auth-link"
             onClick={() => navigate('/signup')}
             role="button"
             tabIndex={0}

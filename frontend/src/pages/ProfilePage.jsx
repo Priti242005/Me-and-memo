@@ -24,6 +24,7 @@ import { addStoryToHighlight, createHighlight, getHighlights } from '../services
 import StoryViewer from '../components/StoryViewer';
 import StoryComposer from '../components/StoryComposer';
 import { getMyStories, getStoriesByUser } from '../services/storyService';
+import '../components/app-ui.css';
 
 function isVideoUrl(url) {
   return /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(String(url || ''));
@@ -319,8 +320,9 @@ export default function ProfilePage() {
   const hasActiveStory = storyGroups.some((g) => (g.stories || []).length > 0);
 
   return (
-    <div>
-      <div className="flex items-start gap-5 mb-5">
+    <div className="space-y-5">
+      <div className="app-panel p-5">
+      <div className="flex items-start gap-5 mb-0">
         <button
           type="button"
           onClick={() => {
@@ -343,27 +345,27 @@ export default function ProfilePage() {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-2xl font-bold text-white">
                 {profile?.username || user?.username}
               </h1>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="text-sm app-muted">
                 {profile?.email || user?.email}
               </div>
 
               {profile?.bio ? (
-                <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
+                <p className="mt-2 text-sm text-white">
                   {profile.bio}
                 </p>
               ) : null}
 
-              <div className="mt-3 flex items-center gap-6 text-sm">
+              <div className="mt-3 flex items-center gap-6 text-sm text-white">
                 <button type="button" onClick={openFollowers}>
                   <div className="font-semibold">{profile?.followers || 0}</div>
-                  <div className="text-gray-500 dark:text-gray-400">Followers</div>
+                  <div className="app-muted">Followers</div>
                 </button>
                 <button type="button" onClick={openFollowing}>
                   <div className="font-semibold">{profile?.following || 0}</div>
-                  <div className="text-gray-500 dark:text-gray-400">Following</div>
+                  <div className="app-muted">Following</div>
                 </button>
               </div>
             </div>
@@ -376,14 +378,14 @@ export default function ProfilePage() {
                   disabled={followLoading}
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
                     isFollowing
-                      ? 'bg-white dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      ? 'bg-white/5 border border-white/10 hover:bg-white/10 text-white'
                       : 'bg-pink-600 text-white hover:bg-pink-500'
                   } disabled:opacity-60`}
                 >
                   {followLoading ? '...' : isFollowing ? 'Following' : requested ? 'Requested' : 'Follow'}
                 </button>
                 {followError ? (
-                  <div className="mt-2 text-xs text-red-600 dark:text-red-300">
+                  <div className="mt-2 text-xs app-danger">
                     {followError}
                   </div>
                 ) : null}
@@ -393,7 +395,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setEditing((v) => !v)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 hover:bg-white/10 text-white"
                 >
                   {editing ? 'Cancel' : 'Edit profile'}
                 </button>
@@ -402,30 +404,31 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      </div>
       {editing ? (
-        <div className="mb-6 p-4 rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white/70 dark:bg-gray-900/20">
-          <h3 className="font-semibold mb-3">Edit profile</h3>
+        <div className="p-4 app-panel">
+          <h3 className="font-semibold mb-3 text-white">Edit profile</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
               value={editForm.username}
               onChange={(e) => setEditForm((p) => ({ ...p, username: e.target.value }))}
               placeholder="Username"
-              className="px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30"
+              className="app-soft-input"
             />
             <input
               value={editForm.email}
               onChange={(e) => setEditForm((p) => ({ ...p, email: e.target.value }))}
               placeholder="Email"
-              className="px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30"
+              className="app-soft-input"
             />
             <textarea
               value={editForm.bio}
               onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))}
               placeholder="Bio"
-              className="md:col-span-2 px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30"
+              className="md:col-span-2 app-soft-textarea"
               maxLength={160}
             />
-            <label className="md:col-span-2 flex items-center gap-2 text-sm">
+            <label className="md:col-span-2 flex items-center gap-2 text-sm text-white">
               <input
                 type="checkbox"
                 checked={editForm.isPrivate}
@@ -437,16 +440,16 @@ export default function ProfilePage() {
               type="file"
               accept="image/*"
               onChange={(e) => setEditForm((p) => ({ ...p, profileImageFile: e.target.files?.[0] || null }))}
-              className="md:col-span-2 text-sm"
+              className="md:col-span-2 text-sm text-white"
             />
           </div>
-          {editError ? <div className="mt-2 text-sm text-red-600 dark:text-red-300">{editError}</div> : null}
+          {editError ? <div className="mt-2 text-sm app-danger">{editError}</div> : null}
           <div className="mt-3">
             <button
               type="button"
               onClick={handleSaveProfile}
               disabled={editSubmitting}
-              className="px-4 py-2 rounded-xl bg-pink-600 text-white text-sm font-semibold hover:bg-pink-500 disabled:opacity-60"
+              className="app-soft-button text-sm"
             >
               {editSubmitting ? 'Saving...' : 'Save changes'}
             </button>
@@ -454,8 +457,8 @@ export default function ProfilePage() {
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold">
+      <div className="app-panel p-4">
+        <h2 className="text-lg font-bold text-white">
           {viewingSelf
             ? 'Your posts'
             : `${profile?.username || 'User'} posts`}
@@ -464,7 +467,7 @@ export default function ProfilePage() {
       {highlights.length > 0 ? (
         <div className="mb-4 flex items-center gap-4 overflow-x-auto">
           {highlights.map((h) => (
-            <button type="button" key={h._id} onClick={() => setActiveHighlight(h)} className="flex flex-col items-center gap-2 min-w-[72px]">
+            <button type="button" key={h._id} onClick={() => setActiveHighlight(h)} className="flex flex-col items-center gap-2 min-w-[72px] text-white">
               <div className="w-14 h-14 rounded-full border-2 border-gray-300 dark:border-gray-700 overflow-hidden">
                 <img src={h.coverImage || h.stories?.[0]?.mediaUrl || '/default-avatar.svg'} alt={h.title} className="w-full h-full object-cover" />
               </div>
@@ -485,54 +488,54 @@ export default function ProfilePage() {
             type="button"
             onClick={() => !storyLoading && setStoryComposerOpen(true)}
             disabled={storyLoading}
-            className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm disabled:opacity-50"
+            className="app-muted-button text-sm disabled:opacity-50"
           >
             {storyLoading ? 'Uploading...' : 'Add to Story'}
           </button>
-          <button type="button" onClick={() => setCreateHighlightOpen(true)} className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm">
+          <button type="button" onClick={() => setCreateHighlightOpen(true)} className="app-muted-button text-sm">
             Create Highlight
           </button>
-          <button type="button" onClick={() => setAddStoryOpen(true)} className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm">
+          <button type="button" onClick={() => setAddStoryOpen(true)} className="app-muted-button text-sm">
             Add Story to Highlight
           </button>
         </div>
       ) : null}
       {storyActionError ? (
-        <div className="mb-4 text-sm text-red-600 dark:text-red-300">{storyActionError}</div>
+        <div className="mb-4 text-sm app-danger">{storyActionError}</div>
       ) : null}
 
       {profileLoading ? (
-        <div className="text-center py-6 text-gray-600 dark:text-gray-300">
+        <div className="text-center py-6 app-muted">
           Loading profile...
         </div>
       ) : null}
 
       {profileError ? (
-        <div className="text-red-600 dark:text-red-300 text-center py-6">
+        <div className="app-danger text-center py-6">
           {profileError}
         </div>
       ) : null}
 
       {postsLoading ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
+        <div className="text-center py-10 app-muted">
           Loading posts...
         </div>
       ) : null}
 
       {postsError ? (
-        <div className="text-red-600 dark:text-red-300 text-center py-6">
+        <div className="app-danger text-center py-6">
           {postsError}
         </div>
       ) : null}
 
       {showPrivateGate ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
+        <div className="text-center py-10 app-muted">
           This account is private.
         </div>
       ) : null}
 
       {!postsLoading && !postsError && profilePosts.length === 0 && !showPrivateGate ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
+        <div className="text-center py-10 app-muted">
           No posts to show.
         </div>
       ) : null}
@@ -576,10 +579,10 @@ export default function ProfilePage() {
       />
       {activeHighlight ? (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4">
+          <div className="w-full max-w-lg app-panel p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="font-semibold">{activeHighlight.title}</div>
-              <button type="button" onClick={() => setActiveHighlight(null)}>Close</button>
+              <div className="font-semibold text-white">{activeHighlight.title}</div>
+              <button type="button" onClick={() => setActiveHighlight(null)} className="app-link">Close</button>
             </div>
             <div className="grid grid-cols-2 gap-3 max-h-[70vh] overflow-auto">
               {(activeHighlight.stories || []).map((story) => (
@@ -595,16 +598,16 @@ export default function ProfilePage() {
       ) : null}
       {createHighlightOpen ? (
         <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4">
+          <div className="w-full max-w-xl app-panel p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold">Create Highlight</h3>
-              <button type="button" onClick={() => setCreateHighlightOpen(false)}>Close</button>
+              <h3 className="font-semibold text-white">Create Highlight</h3>
+              <button type="button" onClick={() => setCreateHighlightOpen(false)} className="app-link">Close</button>
             </div>
             <input
               value={createHighlightTitle}
               onChange={(e) => setCreateHighlightTitle(e.target.value)}
               placeholder="Highlight title"
-              className="w-full mb-3 px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30"
+              className="w-full mb-3 app-soft-input"
             />
             <div className="grid grid-cols-3 gap-2 max-h-72 overflow-auto">
               {myStoriesFlat.map((story) => {
@@ -629,7 +632,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleCreateHighlight}
-                className="px-4 py-2 rounded-xl bg-pink-600 text-white text-sm font-semibold hover:bg-pink-500"
+                className="app-soft-button text-sm"
               >
                 Save Highlight
               </button>
@@ -639,27 +642,27 @@ export default function ProfilePage() {
       ) : null}
       {addStoryOpen ? (
         <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4">
+          <div className="w-full max-w-lg app-panel p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold">Add Story to Highlight</h3>
-              <button type="button" onClick={() => setAddStoryOpen(false)}>Close</button>
+              <h3 className="font-semibold text-white">Add Story to Highlight</h3>
+              <button type="button" onClick={() => setAddStoryOpen(false)} className="app-link">Close</button>
             </div>
-            <label className="block text-sm mb-1">Select Highlight</label>
+            <label className="block text-sm mb-1 text-white">Select Highlight</label>
             <select
               value={targetHighlightId}
               onChange={(e) => setTargetHighlightId(e.target.value)}
-              className="w-full mb-3 px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30"
+              className="w-full mb-3 app-soft-select"
             >
               <option value="">Choose highlight</option>
               {highlights.map((h) => (
                 <option key={h._id} value={h._id}>{h.title}</option>
               ))}
             </select>
-            <label className="block text-sm mb-1">Select Story</label>
+            <label className="block text-sm mb-1 text-white">Select Story</label>
             <select
               value={targetStoryId}
               onChange={(e) => setTargetStoryId(e.target.value)}
-              className="w-full mb-4 px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30"
+              className="w-full mb-4 app-soft-select"
             >
               <option value="">Choose story</option>
               {myStoriesFlat.map((s) => (
@@ -671,7 +674,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleAddStoryToHighlight}
-              className="px-4 py-2 rounded-xl bg-pink-600 text-white text-sm font-semibold hover:bg-pink-500"
+              className="app-soft-button text-sm"
             >
               Add
             </button>
@@ -690,4 +693,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

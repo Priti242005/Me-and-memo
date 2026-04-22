@@ -6,6 +6,7 @@ import {
   acceptCollaboration,
   rejectCollaboration,
 } from '../services/postService';
+import './app-ui.css';
 
 function isVideoUrl(url) {
   const u = String(url || '').toLowerCase();
@@ -48,7 +49,6 @@ export default function PostCard({
   const mediaIsVideo = isVideoUrl(post.mediaUrl);
   const topComments = (post.comments || []).slice(-3);
   const isOwner = String(post.userId?._id || '') === normalizeId(currentUserId);
-  /** Scheduled / time-capsule: hidden from public feed until unlock. */
   const isLocked = post.isLocked === true;
 
   const collabEntries = useMemo(() => {
@@ -75,9 +75,7 @@ export default function PostCard({
 
   const collaboratorNames = collabEntries
     .filter((c) => c.username)
-    .map((c) =>
-      c.status === 'pending' ? `${c.username} (pending)` : c.username
-    );
+    .map((c) => (c.status === 'pending' ? `${c.username} (pending)` : c.username));
 
   async function handleAddCollaborators() {
     if (!onAddCollaborators) return;
@@ -88,7 +86,6 @@ export default function PostCard({
     setCollabLoading(true);
     try {
       const updated = await onAddCollaborators(post._id, raw);
-      // Parent is responsible for state updates; PostCard can still clear input.
       if (updated) setCollabInput('');
     } catch (err) {
       setCollabError(err?.response?.data?.message || 'Failed to add collaborators.');
@@ -117,9 +114,7 @@ export default function PostCard({
 
   async function handleSubmitComment() {
     const text = commentText.trim();
-    if (!text) return;
-    if (text.length > 500) return;
-    if (isLocked) return;
+    if (!text || text.length > 500 || isLocked) return;
 
     try {
       setSubmitting(true);
@@ -134,25 +129,25 @@ export default function PostCard({
   }
 
   return (
-    <article className="bg-white dark:bg-gray-900/30 border border-gray-200/70 dark:border-gray-800 rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
+    <article className="app-panel overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-4 py-4">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={post.userId?.profilePic || '/default-avatar.svg'}
             alt={post.userId?.username || 'User'}
-            className="w-10 h-10 rounded-full object-cover bg-gray-200 dark:bg-gray-800"
+            className="w-10 h-10 rounded-full object-cover bg-gray-200"
           />
           <div className="min-w-0">
             <Link
               to={`/profile/${post.userId?._id || ''}`}
-              className="font-semibold text-sm truncate hover:underline"
+              className="font-semibold text-sm truncate hover:underline text-white"
             >
               {post.userId?.username || 'Unknown'}
             </Link>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs app-muted">
               {new Date(post.createdAt).toLocaleString()}
               {isLocked && post.unlockDate ? (
-                <span className="ml-2 text-amber-600 dark:text-amber-400 font-medium">
+                <span className="ml-2 text-amber-400 font-medium">
                   · Unlocks {new Date(post.unlockDate).toLocaleString()}
                 </span>
               ) : null}
@@ -160,7 +155,7 @@ export default function PostCard({
           </div>
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs app-muted">
           <button
             type="button"
             onClick={async () => {
@@ -174,7 +169,7 @@ export default function PostCard({
         </div>
       </div>
 
-      <div className="bg-black/5 dark:bg-black/20 relative">
+      <div className="bg-black/20 relative">
         {isLocked ? (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/55 text-white px-4 text-center">
             <div className="text-2xl" aria-hidden>
@@ -205,14 +200,14 @@ export default function PostCard({
         )}
       </div>
 
-      <div className="px-4 py-3">
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-4">
+        <div className="flex items-center gap-3 flex-wrap">
           {likedByMe ? (
             <button
               type="button"
               onClick={() => !isLocked && onUnlike(post._id)}
               disabled={isLocked}
-              className="px-3 py-1.5 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-300 border border-pink-500/20 hover:bg-pink-500/15 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg bg-pink-500/10 text-pink-300 border border-pink-500/20 hover:bg-pink-500/15 transition text-sm font-medium disabled:opacity-50"
             >
               Liked
             </button>
@@ -221,57 +216,59 @@ export default function PostCard({
               type="button"
               onClick={() => !isLocked && onLike(post._id)}
               disabled={isLocked}
-              className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="app-muted-button text-sm disabled:opacity-50"
             >
               Like
             </button>
           )}
 
-          <div className="text-sm text-gray-600 dark:text-gray-300">
-            {post.caption ? (
-              <div className="mt-1">
-                <span className="font-semibold">{post.userId?.username || ''}</span>{' '}
-                {post.caption}
-              </div>
-            ) : null}
-
-            {collaboratorNames.length > 0 ? (
-              <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Collaborators: {collaboratorNames.join(', ')}
-              </div>
-            ) : null}
-            {hasPendingCollabInvite ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  Collaboration invite
-                </span>
-                <button
-                  type="button"
-                  onClick={handleAcceptCollab}
-                  className="text-xs px-2 py-1 rounded-lg bg-pink-600 text-white font-semibold"
-                >
-                  Accept
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRejectCollab}
-                  className="text-xs px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-600"
-                >
-                  Reject
-                </button>
-              </div>
-            ) : null}
-          </div>
           {isOwner && onDelete ? (
             <button
               type="button"
               onClick={() => {
                 if (window.confirm('Delete this post?')) onDelete(post._id);
               }}
-              className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition text-sm font-medium"
+              className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-200 border border-red-500/20 transition text-sm font-medium"
             >
               Delete
             </button>
+          ) : null}
+        </div>
+
+        <div className="mt-3 text-sm app-muted">
+          {post.caption ? (
+            <div className="mt-1 text-white">
+              <span className="font-semibold">{post.userId?.username || ''}</span>{' '}
+              {post.caption}
+            </div>
+          ) : null}
+
+          {collaboratorNames.length > 0 ? (
+            <div className="mt-2 text-xs app-muted">
+              Collaborators: {collaboratorNames.join(', ')}
+            </div>
+          ) : null}
+
+          {hasPendingCollabInvite ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-amber-400">
+                Collaboration invite
+              </span>
+              <button
+                type="button"
+                onClick={handleAcceptCollab}
+                className="px-3 py-1.5 rounded-lg bg-pink-600 text-white text-xs font-semibold"
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                onClick={handleRejectCollab}
+                className="app-muted-button text-xs"
+              >
+                Reject
+              </button>
+            </div>
           ) : null}
         </div>
 
@@ -279,20 +276,20 @@ export default function PostCard({
           {topComments.length > 0 ? (
             topComments.map((c, idx) => (
               <div key={`${idx}-${c.createdAt || ''}`} className="text-sm flex items-center gap-1">
-                <Link to={`/profile/${c.userId?._id || c.userId || ''}`} className="font-semibold hover:underline">
+                <Link
+                  to={`/profile/${c.userId?._id || c.userId || ''}`}
+                  className="font-semibold hover:underline text-white"
+                >
                   {c.userId?.username || 'user'}
                 </Link>
-                <span className="text-gray-700 dark:text-gray-200">
-                  {c.text}
-                </span>
+                <span className="text-white">{c.text}</span>
               </div>
             ))
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Be the first to comment.
-            </div>
+            <div className="text-sm app-muted">Be the first to comment.</div>
           )}
         </div>
+
         <button
           type="button"
           onClick={async () => {
@@ -300,7 +297,7 @@ export default function PostCard({
             setCommentsList(data.comments || []);
             setCommentsOpen(true);
           }}
-          className="mt-2 text-xs text-gray-500 hover:underline"
+          className="mt-2 text-xs app-link"
         >
           View all comments
         </button>
@@ -312,64 +309,73 @@ export default function PostCard({
               setCommentText(e.target.value);
               if (commentBlockedMsg) setCommentBlockedMsg(null);
             }}
-            placeholder={isLocked ? 'Comments unlock when the post goes live…' : 'Add a comment...'}
+            placeholder={isLocked ? 'Comments unlock when the post goes live...' : 'Add a comment...'}
             disabled={isLocked}
-            className="flex-1 px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none text-sm disabled:opacity-60"
+            className="flex-1 app-soft-input text-sm disabled:opacity-60"
             maxLength={500}
           />
           <button
             type="button"
             onClick={handleSubmitComment}
             disabled={submitting || isLocked}
-            className="px-4 py-2 rounded-xl bg-pink-600 text-white text-sm font-semibold hover:bg-pink-500 disabled:opacity-60 transition"
+            className="app-soft-button text-sm"
           >
             {submitting ? '...' : 'Post'}
           </button>
         </div>
         {commentBlockedMsg ? (
-          <div className="mt-2 text-sm text-amber-700 dark:text-amber-300" role="alert">
+          <div className="mt-2 text-sm text-amber-300" role="alert">
             {commentBlockedMsg}
           </div>
         ) : null}
 
         {canManageCollaborators ? (
           <div className="mt-3">
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">
-              Collaborate
-            </div>
+            <div className="text-xs font-semibold app-muted mb-2">Collaborate</div>
             <div className="flex items-center gap-2">
               <input
                 value={collabInput}
                 onChange={(e) => setCollabInput(e.target.value)}
                 placeholder="Add usernames (comma-separated)"
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none text-sm"
+                className="flex-1 app-soft-input text-sm"
                 disabled={collabLoading}
               />
               <button
                 type="button"
                 onClick={handleAddCollaborators}
                 disabled={collabLoading || !collabInput.trim()}
-                className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-60 transition text-sm font-semibold"
+                className="app-muted-button text-sm disabled:opacity-60"
               >
                 {collabLoading ? 'Adding...' : 'Add'}
               </button>
             </div>
-            {collabError ? (
-              <div className="mt-2 text-xs text-red-600 dark:text-red-300">
-                {collabError}
-              </div>
-            ) : null}
+            {collabError ? <div className="mt-2 text-xs app-danger">{collabError}</div> : null}
           </div>
         ) : null}
       </div>
+
       {likesOpen ? (
         <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl p-4">
-            <div className="flex justify-between mb-3"><div className="font-semibold">Likes</div><button type="button" onClick={() => setLikesOpen(false)}>Close</button></div>
+          <div className="w-full max-w-sm app-panel p-4">
+            <div className="flex justify-between mb-3">
+              <div className="font-semibold text-white">Likes</div>
+              <button type="button" onClick={() => setLikesOpen(false)} className="app-link">
+                Close
+              </button>
+            </div>
             <div className="space-y-2 max-h-72 overflow-auto">
               {likesUsers.map((u) => (
-                <Link key={u.userId} to={`/profile/${u.userId}`} className="flex items-center gap-2" onClick={() => setLikesOpen(false)}>
-                  <img src={u.profilePic || '/default-avatar.svg'} alt={u.username} className="w-7 h-7 rounded-full object-cover" />
+                <Link
+                  key={u.userId}
+                  to={`/profile/${u.userId}`}
+                  className="flex items-center gap-2 text-white"
+                  onClick={() => setLikesOpen(false)}
+                >
+                  <img
+                    src={u.profilePic || '/default-avatar.svg'}
+                    alt={u.username}
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
                   <span className="text-sm">{u.username}</span>
                 </Link>
               ))}
@@ -377,14 +383,28 @@ export default function PostCard({
           </div>
         </div>
       ) : null}
+
       {commentsOpen ? (
         <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl p-4">
-            <div className="flex justify-between mb-3"><div className="font-semibold">Comments</div><button type="button" onClick={() => setCommentsOpen(false)}>Close</button></div>
+          <div className="w-full max-w-md app-panel p-4">
+            <div className="flex justify-between mb-3">
+              <div className="font-semibold text-white">Comments</div>
+              <button type="button" onClick={() => setCommentsOpen(false)} className="app-link">
+                Close
+              </button>
+            </div>
             <div className="space-y-2 max-h-80 overflow-auto">
               {commentsList.map((c, idx) => (
-                <div key={`${idx}-${c.createdAt || ''}`} className="text-sm">
-                  {c.user ? <Link to={`/profile/${c.user.userId}`} onClick={() => setCommentsOpen(false)} className="font-semibold hover:underline mr-1">{c.user.username}</Link> : null}
+                <div key={`${idx}-${c.createdAt || ''}`} className="text-sm text-white">
+                  {c.user ? (
+                    <Link
+                      to={`/profile/${c.user.userId}`}
+                      onClick={() => setCommentsOpen(false)}
+                      className="font-semibold hover:underline mr-1 text-white"
+                    >
+                      {c.user.username}
+                    </Link>
+                  ) : null}
                   {c.text}
                 </div>
               ))}
@@ -395,4 +415,3 @@ export default function PostCard({
     </article>
   );
 }
-

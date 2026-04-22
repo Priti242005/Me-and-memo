@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { useNotificationsSocket } from '../hooks/useNotificationsSocket';
 import { searchUsers } from '../services/searchService';
+import './app-ui.css';
 
 function IconButton({ onClick, label, children }) {
   return (
@@ -11,7 +12,7 @@ function IconButton({ onClick, label, children }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
+      className="p-2 rounded-full hover:bg-white/10 transition text-white"
     >
       {children}
     </button>
@@ -49,13 +50,13 @@ export default function Navbar() {
   const unreadCount = notifications.length;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#16171d]/80 backdrop-blur border-b border-gray-100 dark:border-gray-800">
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+    <header className="app-topbar">
+      <div className="app-container py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
             to="/"
             aria-label="MeAndMemo home"
-            className="flex items-center gap-2.5 font-semibold tracking-tight text-lg"
+            className="flex items-center gap-3 font-semibold tracking-tight text-lg text-white"
           >
             <img
               src="/meandmemo-logo.png"
@@ -65,26 +66,20 @@ export default function Navbar() {
               className="h-9 w-9 rounded-full object-cover shrink-0"
               draggable={false}
             />
+            <span className="hidden sm:inline text-lg font-semibold tracking-tight">
+              MeAndMemo
+            </span>
           </Link>
         </div>
 
-        <nav className="hidden sm:flex items-center gap-1 text-sm">
-          <Link
-            to="/"
-            className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-          >
+        <nav className="hidden sm:flex items-center gap-2 text-sm">
+          <Link to="/" className="app-chip">
             Home
           </Link>
-          <Link
-            to="/reels"
-            className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-          >
+          <Link to="/reels" className="app-chip">
             Reels
           </Link>
-          <Link
-            to="/create-post"
-            className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-          >
+          <Link to="/create-post" className="app-chip">
             Create
           </Link>
         </nav>
@@ -99,14 +94,14 @@ export default function Navbar() {
               searchTimerRef.current = setTimeout(() => runSearch(next), 300);
             }}
             placeholder="Search users..."
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/40 text-sm"
+            className="app-soft-input text-sm"
           />
           {q.trim() ? (
-            <div className="absolute mt-2 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg overflow-hidden z-50">
+            <div className="absolute mt-2 w-full app-panel overflow-hidden z-50">
               {searchLoading ? (
-                <div className="px-3 py-2 text-sm text-gray-500">Searching...</div>
+                <div className="px-3 py-2 text-sm app-muted">Searching...</div>
               ) : searchResults.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-gray-500">No users found.</div>
+                <div className="px-3 py-2 text-sm app-muted">No users found.</div>
               ) : (
                 searchResults.map((result) => (
                   <button
@@ -117,9 +112,13 @@ export default function Navbar() {
                       setSearchResults([]);
                       navigate(`/profile/${result._id}`);
                     }}
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left hover:bg-white/5 flex items-center gap-2 text-white"
                   >
-                    <img src={result.profilePic || '/default-avatar.svg'} alt={result.username} className="w-7 h-7 rounded-full object-cover" />
+                    <img
+                      src={result.profilePic || '/default-avatar.svg'}
+                      alt={result.username}
+                      className="w-7 h-7 rounded-full object-cover"
+                    />
                     <span className="text-sm">{result.username}</span>
                   </button>
                 ))
@@ -129,10 +128,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <IconButton
-            label="Toggle theme"
-            onClick={toggleTheme}
-          >
+          <IconButton label="Toggle theme" onClick={toggleTheme}>
             <span className="text-sm font-medium">
               {theme === 'dark' ? 'Dark' : 'Light'}
             </span>
@@ -144,7 +140,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 aria-label="Notifications"
-                className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition relative"
+                className="p-2 rounded-full hover:bg-white/10 transition relative text-white"
               >
                 <svg
                   className="w-5 h-5"
@@ -166,36 +162,34 @@ export default function Navbar() {
               </button>
 
               {open ? (
-                <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white dark:bg-gray-900/95 border border-gray-200/70 dark:border-gray-800 rounded-2xl shadow-lg overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                    <div className="font-semibold text-sm">Notifications</div>
+                <div className="absolute right-0 mt-2 w-80 max-w-[90vw] app-panel overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-white/10">
+                    <div className="font-semibold text-sm text-white">Notifications</div>
                   </div>
                   <div className="max-h-80 overflow-auto">
                     {notifications.length === 0 ? (
-                      <div className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
+                      <div className="px-4 py-4 text-sm app-muted">
                         No new notifications.
                       </div>
                     ) : (
                       notifications.map((n) => (
                         <div
                           key={n._id || n.postId || `${n.type}-${n.actorId}-${n.createdAt}`}
-                          className="px-4 py-3 border-b border-gray-50 dark:border-gray-800 text-sm"
+                          className="px-4 py-3 border-b border-white/5 text-sm"
                         >
-                          <div className="font-medium">{n.message}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {n.createdAt
-                              ? new Date(n.createdAt).toLocaleString()
-                              : ''}
+                          <div className="font-medium text-white">{n.message}</div>
+                          <div className="text-xs app-muted mt-1">
+                            {n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}
                           </div>
                         </div>
                       ))
                     )}
                   </div>
-                  <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+                  <div className="px-4 py-3 border-t border-white/10">
                     <button
                       type="button"
                       onClick={() => setOpen(false)}
-                      className="w-full text-sm px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                      className="w-full app-muted-button text-sm"
                     >
                       Close
                     </button>
@@ -209,7 +203,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => navigate('/profile')}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-white/10 transition text-white"
             >
               <img
                 src={user.profilePic || '/default-avatar.svg'}
@@ -227,15 +221,12 @@ export default function Navbar() {
                 logout();
                 navigate('/login');
               }}
-              className="ml-1 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition text-sm text-red-600 dark:text-red-300"
+              className="ml-1 px-3 py-2 rounded-lg hover:bg-red-500/10 transition text-sm app-danger"
             >
               Logout
             </button>
           ) : (
-            <Link
-              to="/login"
-              className="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition text-sm"
-            >
+            <Link to="/login" className="app-chip">
               Login
             </Link>
           )}
@@ -244,4 +235,3 @@ export default function Navbar() {
     </header>
   );
 }
-

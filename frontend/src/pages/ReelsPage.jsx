@@ -7,6 +7,7 @@ import {
 } from '../services/reelService';
 import { useAuth } from '../hooks/useAuth';
 import ReelsScroller from '../components/ReelsScroller';
+import '../components/app-ui.css';
 
 export default function ReelsPage() {
   const { user } = useAuth();
@@ -71,7 +72,6 @@ export default function ReelsPage() {
     try {
       setSubmitting(true);
       const data = await uploadReel({ caption, mediaFile });
-      // data: { reel: {...} }
       if (data.reel) setReels((prev) => [data.reel, ...prev]);
       setCaption('');
       setMediaFile(null);
@@ -85,26 +85,29 @@ export default function ReelsPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Reels</h2>
+    <div className="space-y-4">
+      <div className="app-panel p-5">
+        <h2 className="app-section-title">Reels</h2>
+        <p className="app-section-subtitle">
+          Upload a reel and scroll through short-form moments.
+        </p>
       </div>
 
-      <div className="bg-white dark:bg-gray-900/30 border border-gray-200/70 dark:border-gray-800 rounded-2xl p-5 mb-5">
+      <div className="app-panel p-5">
         <form onSubmit={handleUpload} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium mb-2 text-white">
               Upload a reel (video)
             </label>
             <input
               type="file"
               accept="video/*"
               onChange={handleFileChange}
-              className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-500"
+              className="block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-500"
             />
 
             {previewUrl ? (
-              <div className="mt-4 rounded-2xl overflow-hidden border border-gray-200/70 dark:border-gray-800">
+              <div className="mt-4 rounded-2xl overflow-hidden border border-white/10">
                 <video
                   src={previewUrl}
                   className="w-full max-h-[360px] object-cover bg-black"
@@ -116,44 +119,32 @@ export default function ReelsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Caption</label>
+            <label className="block text-sm font-medium mb-2 text-white">Caption</label>
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Add a caption..."
               maxLength={1000}
-              className="w-full min-h-[110px] px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none text-sm"
+              className="app-soft-textarea text-sm"
             />
           </div>
 
-          {error ? (
-            <div className="text-sm text-red-600 dark:text-red-300">{error}</div>
-          ) : null}
+          {error ? <div className="text-sm app-danger">{error}</div> : null}
 
           <button
             type="submit"
             disabled={submitting || !canUpload}
-            className="w-full py-2.5 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-500 disabled:opacity-60 transition"
+            className="w-full app-soft-button"
           >
             {submitting ? 'Uploading...' : 'Upload Reel'}
           </button>
         </form>
       </div>
 
-      {feedLoading ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
-          Loading reels...
-        </div>
-      ) : null}
-
-      {feedError ? (
-        <div className="text-center py-6 text-red-600 dark:text-red-300">
-          {feedError}
-        </div>
-      ) : null}
-
+      {feedLoading ? <div className="text-center py-10 app-muted">Loading reels...</div> : null}
+      {feedError ? <div className="text-center py-6 app-danger">{feedError}</div> : null}
       {!feedLoading && reels.length === 0 ? (
-        <div className="text-center py-10 text-gray-600 dark:text-gray-300">
+        <div className="text-center py-10 app-muted">
           No reels found. Upload one to get started.
         </div>
       ) : null}
@@ -175,4 +166,3 @@ export default function ReelsPage() {
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signup } from '../services/authService';
+import './auth.css';
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -9,10 +10,9 @@ export default function SignupPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
-  const [profilePic, setProfilePic] = useState(''); // URL (optional)
+  const [profilePic, setProfilePic] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
   const [localError, setLocalError] = useState(null);
 
   async function handleSubmit(e) {
@@ -43,104 +43,93 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-[calc(100svh-56px)] flex items-center justify-center px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white dark:bg-gray-900/30 border border-gray-200/70 dark:border-gray-800 rounded-2xl p-6"
-      >
-        <h1 className="text-2xl font-bold mb-2">Create account</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-          Join MeAndMemo — share moments and memories.
+    <div className="auth-page">
+      <form onSubmit={handleSubmit} className="auth-card auth-form">
+        <h1 className="auth-title">Sign up</h1>
+        <p className="auth-subtitle">
+          Join MeAndMemo and continue with the original polished experience.
         </p>
 
-        <div className="space-y-3">
-          <label className="block">
-            <span className="text-sm font-medium">Name</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="Your name"
-              autoComplete="name"
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Name</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="auth-input"
+            placeholder="Your name"
+            autoComplete="name"
+          />
+        </label>
 
-          <label className="block">
-            <span className="text-sm font-medium">Username</span>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="yourname"
-              autoComplete="username"
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Username</span>
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="auth-input"
+            placeholder="yourname"
+            autoComplete="username"
+          />
+        </label>
 
-          <label className="block">
-            <span className="text-sm font-medium">Email</span>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Email</span>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="auth-input"
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+        </label>
 
-          <label className="block">
-            <span className="text-sm font-medium">Password</span>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Password</span>
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            className="auth-input"
+            placeholder="........"
+            autoComplete="new-password"
+          />
+        </label>
 
-          <label className="block">
-            <span className="text-sm font-medium">
-              Profile Picture URL (optional)
-            </span>
-            <input
-              value={profilePic}
-              onChange={(e) => setProfilePic(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="https://..."
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Profile Picture URL (optional)</span>
+          <input
+            value={profilePic}
+            onChange={(e) => setProfilePic(e.target.value)}
+            className="auth-input"
+            placeholder="https://..."
+          />
+        </label>
 
-          <label className="block">
-            <span className="text-sm font-medium">Bio (optional)</span>
-            <input
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900/30 outline-none"
-              placeholder="Tell people about yourself..."
-              maxLength={160}
-            />
-          </label>
+        <label className="auth-field">
+          <span className="auth-label">Bio (optional)</span>
+          <input
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className="auth-input"
+            placeholder="Tell people about yourself..."
+            maxLength={160}
+          />
+        </label>
 
-          {localError ? (
-            <div className="text-sm text-red-600 dark:text-red-300">
-              {localError}
-            </div>
-          ) : null}
+        {localError ? <p className="auth-message error">{localError}</p> : null}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-2.5 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-500 disabled:opacity-60 transition"
-          >
-            {submitting ? 'Creating...' : 'Create account & send OTP'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="auth-button primary"
+        >
+          {submitting ? 'Creating...' : 'Create account & send OTP'}
+        </button>
 
-        <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-          Already have an account?{' '}
+        <div className="auth-footer">
+          Already have an account?
           <span
-            className="text-pink-600 dark:text-pink-300 cursor-pointer font-medium hover:underline"
+            className="auth-link"
             onClick={() => navigate('/login')}
             role="button"
             tabIndex={0}
@@ -152,4 +141,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

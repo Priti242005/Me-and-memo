@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getSuggestedUsers, follow } from '../services/userService';
+import './app-ui.css';
 
 export default function RightRail() {
   const { refreshUser } = useAuth();
@@ -47,13 +48,13 @@ export default function RightRail() {
 
   return (
     <div className="sticky top-[72px]">
-      <div className="bg-white dark:bg-gray-900/30 border border-gray-200/70 dark:border-gray-800 rounded-2xl p-4">
-        <h3 className="font-semibold text-sm mb-3">Suggested for you</h3>
+      <div className="app-panel p-4">
+        <h3 className="font-semibold text-sm mb-3 text-white">Suggested for you</h3>
         {loading ? (
-          <div className="text-sm text-gray-500">Loading...</div>
+          <div className="text-sm app-muted">Loading...</div>
         ) : null}
         {error ? (
-          <div className="text-xs text-red-600 dark:text-red-300 mb-2">{error}</div>
+          <div className="text-xs app-danger mb-2">{error}</div>
         ) : null}
         <div className="space-y-2">
           {suggestions.map((u) => (
@@ -63,7 +64,7 @@ export default function RightRail() {
             >
               <Link
                 to={`/profile/${u._id}`}
-                className="flex items-center gap-2 min-w-0 text-sm text-gray-700 dark:text-gray-300 hover:underline"
+                className="flex items-center gap-2 min-w-0 text-sm text-white hover:underline"
               >
                 <img
                   src={u.profilePic || '/default-avatar.svg'}
@@ -84,7 +85,7 @@ export default function RightRail() {
           ))}
         </div>
         {!loading && suggestions.length === 0 && !error ? (
-          <div className="text-sm text-gray-500">No suggestions right now.</div>
+          <div className="text-sm app-muted">No suggestions right now.</div>
         ) : null}
       </div>
     </div>

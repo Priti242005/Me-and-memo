@@ -1,3 +1,5 @@
+import './app-ui.css';
+
 /**
  * One ring per user. `groups` from API: [{ user, stories: [...] }].
  */
@@ -11,7 +13,7 @@ export default function StoryStrip({
   if (groups.length === 0 && !onAddStory) return null;
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 app-panel p-4">
       <div className="flex items-center gap-3 overflow-x-auto pb-2">
         {onAddStory ? (
           <button
@@ -25,8 +27,8 @@ export default function StoryStrip({
                 +
               </div>
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-[72px]">
-              {uploading ? 'Uploading…' : 'Your story'}
+            <div className="text-xs app-muted truncate max-w-[72px]">
+              {uploading ? 'Uploading...' : 'Your story'}
             </div>
           </button>
         ) : null}
@@ -46,7 +48,7 @@ export default function StoryStrip({
                 />
               </div>
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-[72px]">
+            <div className="text-xs app-muted truncate max-w-[72px]">
               {g.user?.username || 'User'}
             </div>
           </button>
