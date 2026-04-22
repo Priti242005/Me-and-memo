@@ -135,7 +135,7 @@ export default function Navbar() {
 
         <div className="nav-actions">
           <IconButton label="Toggle theme" onClick={toggleTheme}>
-            <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
           </IconButton>
 
           {user ? (
