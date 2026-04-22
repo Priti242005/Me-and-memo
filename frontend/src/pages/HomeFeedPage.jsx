@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import PostCard from '../components/PostCard';
-import StoryStrip from '../components/StoryStrip';
+import StoryBar from '../components/StoryBar';
 import StoryViewer from '../components/StoryViewer';
 import StoryComposer from '../components/StoryComposer';
 import { useAuth } from '../hooks/useAuth';
@@ -84,8 +84,8 @@ export default function HomeFeedPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <StoryStrip
+    <div className="feed-stack">
+      <StoryBar
         groups={storyGroups}
         onOpenGroup={(idx) => {
           setStoryGroupIndex(idx);
@@ -102,7 +102,7 @@ export default function HomeFeedPage() {
         onSuccess={afterStoryCreated}
       />
 
-      <div className="app-panel p-5">
+      <div className="app-panel feed-header-card">
         <h2 className="app-section-title">Home Feed</h2>
         <p className="app-section-subtitle">
           Catch up on new posts, memories, and story updates.
@@ -117,7 +117,7 @@ export default function HomeFeedPage() {
         </div>
       ) : null}
 
-      <div className="space-y-4">
+      <div className="feed-stack">
         {posts.map((post) => (
           <PostCard
             key={post._id}

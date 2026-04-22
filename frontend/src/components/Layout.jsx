@@ -12,16 +12,16 @@ export default function Layout() {
     <div className="app-shell">
       <Navbar />
       <div className="app-container app-main">
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_280px] gap-6">
-          <aside className="hidden lg:block">
+        <div className="app-layout">
+          <aside className="app-left-col">
             <Sidebar user={user} />
           </aside>
 
-          <main className="min-w-0">
+          <main className="app-center-col">
             <Outlet />
           </main>
 
-          <aside className="hidden lg:block">
+          <aside className="app-right-col">
             <RightRail />
           </aside>
         </div>
