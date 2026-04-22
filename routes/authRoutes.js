@@ -58,7 +58,12 @@ router.get(
 
       const token = signAccessToken(user._id);
 
-      const redirectBase = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+      const redirectBase = process.env.FRONTEND_URL;
+
+         if (!redirectBase) {
+         console.error("❌ FRONTEND_URL missing in ENV");
+          return res.status(500).send("Server config error");
+       }
 
       console.log("✅ Google Login Success");
       console.log("👉 Redirecting to:", redirectBase);
