@@ -68,7 +68,8 @@ function groupStoriesByUser(stories, viewerId) {
 }
 
 async function createStory(req, res) {
-  const file = req.file;
+  const file = req.files?.media?.[0] || req.file;
+  const audioFile = req.files?.audio?.[0] || null;
   if (!file) throw new AppError('Media file is required (field name: media)', 400);
 
   const {
@@ -91,9 +92,23 @@ async function createStory(req, res) {
     folder: 'instagram_clone/stories',
   });
 
+  let audioUrl = '';
+  let audioName = '';
+  if (audioFile) {
+    audioUrl = await uploadToCloudinary({
+      localFilePath: audioFile.path,
+      mimetype: audioFile.mimetype,
+      folder: 'instagram_clone/story_audio',
+      resourceType: 'video',
+    });
+    audioName = String(audioFile.originalname || 'Track').trim().slice(0, 160);
+  }
+
   const story = await Story.create({
     userId: req.user.id,
     mediaUrl: mediaUrl.trim(),
+    audioUrl: audioUrl.trim(),
+    audioName,
     caption: String(caption).slice(0, 500),
     overlayText: String(overlayText).slice(0, 500),
     audience: aud,

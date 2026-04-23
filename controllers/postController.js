@@ -27,7 +27,8 @@ async function createPost(req, res) {
     unlockTime,
     unlockAmPm,
   } = req.body || {};
-  const file = req.file;
+  const file = req.files?.media?.[0] || req.file;
+  const audioFile = req.files?.audio?.[0] || null;
   if (!file) throw new AppError('Media file is required (field name: media)', 400);
 
   const safeCaption =
@@ -56,10 +57,24 @@ async function createPost(req, res) {
     mimetype: file.mimetype,
   });
 
+  let audioUrl = '';
+  let audioName = '';
+  if (audioFile) {
+    audioUrl = await uploadToCloudinary({
+      localFilePath: audioFile.path,
+      mimetype: audioFile.mimetype,
+      folder: 'instagram_clone/post_audio',
+      resourceType: 'video',
+    });
+    audioName = String(audioFile.originalname || 'Track').trim().slice(0, 160);
+  }
+
   const post = await Post.create({
     userId: req.user.id,
     caption: safeCaption,
     mediaUrl: mediaUrl.trim(),
+    audioUrl: audioUrl.trim(),
+    audioName,
     unlockDate: unlockAt || null,
     isLocked,
   });
@@ -276,4 +291,3 @@ module.exports = {
   getPostLikes,
   getPostComments,
 };
-

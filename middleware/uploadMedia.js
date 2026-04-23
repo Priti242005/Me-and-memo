@@ -11,13 +11,11 @@ const {
 
 const TMP_DIR = path.join(os.tmpdir(), 'instagram_clone_uploads');
 
-// Ensure temp directory exists once at startup.
 fs.mkdirSync(TMP_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, TMP_DIR),
   filename: (_req, file, cb) => {
-    // Avoid trusting original file name (security). Generate a random name instead.
     const ext = path.extname(file.originalname || '').toLowerCase();
     const safeExt = ext && ext.length <= 10 ? ext : '';
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
@@ -26,21 +24,30 @@ const storage = multer.diskStorage({
 });
 
 function fileTypeFilter(allowedKind) {
-  // allowedKind: 'image', 'video', 'imageOrVideo'
   return (_req, file, cb) => {
     const mime = String(file.mimetype || '');
     const isImage = mime.startsWith('image/');
     const isVideo = mime.startsWith('video/');
+    const isAudio = mime.startsWith('audio/');
 
     const ok =
       allowedKind === 'image'
         ? isImage
         : allowedKind === 'video'
           ? isVideo
-          : isImage || isVideo;
+          : allowedKind === 'audio'
+            ? isAudio
+            : isImage || isVideo;
 
     if (!ok) {
-      const label = allowedKind === 'image' ? 'images' : allowedKind === 'video' ? 'videos' : 'images or videos';
+      const label =
+        allowedKind === 'image'
+          ? 'images'
+          : allowedKind === 'video'
+            ? 'videos'
+            : allowedKind === 'audio'
+              ? 'audio files'
+              : 'images or videos';
       return cb(new AppError(`Invalid media type. Upload only ${label}.`, 400));
     }
     return cb(null, true);
@@ -67,14 +74,39 @@ function createUploadMediaMiddleware({ allowedKind, fieldName = 'media' }) {
   return upload.single(fieldName);
 }
 
-const uploadPostMedia = createUploadMediaMiddleware({ allowedKind: 'imageOrVideo' });
+function createUploadBundleMiddleware() {
+  const upload = multer({
+    storage,
+    limits: {
+      fileSize: UPLOAD_MAX_VIDEO_BYTES,
+      files: 2,
+    },
+    fileFilter: (_req, file, cb) => {
+      if (file.fieldname === 'media') {
+        return fileTypeFilter('imageOrVideo')(_req, file, cb);
+      }
+      if (file.fieldname === 'audio') {
+        return fileTypeFilter('audio')(_req, file, cb);
+      }
+      return cb(new AppError('Invalid upload field.', 400));
+    },
+  });
+
+  return upload.fields([
+    { name: 'media', maxCount: 1 },
+    { name: 'audio', maxCount: 1 },
+  ]);
+}
+
+const uploadPostMedia = createUploadBundleMiddleware();
+const uploadStoryMedia = createUploadBundleMiddleware();
 const uploadReelMedia = createUploadMediaMiddleware({ allowedKind: 'video' });
 const uploadProfileImage = createUploadMediaMiddleware({ allowedKind: 'image' });
 
 module.exports = {
   uploadPostMedia,
+  uploadStoryMedia,
   uploadReelMedia,
   uploadProfileImage,
   createUploadMediaMiddleware,
 };
-

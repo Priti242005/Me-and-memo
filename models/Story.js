@@ -15,6 +15,17 @@ const storySchema = new Schema(
       required: true,
       trim: true,
     },
+    audioUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    audioName: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 160,
+    },
     /** Optional text drawn on story (client-rendered; stored for replay). */
     overlayText: {
       type: String,

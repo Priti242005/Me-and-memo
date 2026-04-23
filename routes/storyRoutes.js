@@ -2,13 +2,13 @@ const express = require('express');
 const asyncHandler = require('../middleware/asyncHandler');
 const requireAuth = require('../middleware/authMiddleware');
 const storyController = require('../controllers/storyController');
-const { uploadPostMedia } = require('../middleware/uploadMedia');
+const { uploadStoryMedia } = require('../middleware/uploadMedia');
 
 const router = express.Router();
 
 router.use(requireAuth);
 
-router.post('/', uploadPostMedia, asyncHandler(storyController.createStory));
+router.post('/', uploadStoryMedia, asyncHandler(storyController.createStory));
 
 // Static paths before /:id
 router.get('/me', asyncHandler(storyController.getMyStories));

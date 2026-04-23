@@ -41,6 +41,17 @@ const postSchema = new Schema(
       type: String,
       required: true,
     },
+    audioUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    audioName: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 160,
+    },
     likes: [
       {
         type: Schema.Types.ObjectId,
@@ -94,4 +105,3 @@ postSchema.index({ createdAt: -1 });
 postSchema.index({ isLocked: 1, unlockDate: 1 });
 
 module.exports = mongoose.model('Post', postSchema);
-

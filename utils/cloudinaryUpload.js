@@ -6,6 +6,7 @@ const AppError = require('../middleware/AppError');
 
 function guessResourceType(mimetype) {
   if (String(mimetype || '').startsWith('video/')) return 'video';
+  if (String(mimetype || '').startsWith('audio/')) return 'video';
   return 'image';
 }
 
@@ -48,4 +49,3 @@ async function uploadToCloudinary({ localFilePath, mimetype, folder, resourceTyp
 }
 
 module.exports = { uploadToCloudinary };
-
