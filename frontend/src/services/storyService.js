@@ -10,6 +10,7 @@ export async function createStory(mediaFile, meta = {}) {
   if (meta.caption != null) formData.append('caption', String(meta.caption));
   if (meta.overlayText != null) formData.append('overlayText', String(meta.overlayText));
   if (meta.audience) formData.append('audience', meta.audience);
+  if (meta.audioFile) formData.append('audio', meta.audioFile);
 
   const res = await api.post('/stories', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

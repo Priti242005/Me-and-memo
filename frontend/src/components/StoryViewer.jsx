@@ -18,14 +18,6 @@ function timeAgo(date) {
 
 const IMAGE_MS = 5000;
 
-/**
- * Instagram-style fullscreen story viewer.
- * @param {boolean} open
- * @param {Array<{ user: object, stories: object[] }>} groups
- * @param {number} initialGroupIndex
- * @param {number} initialStoryIndex
- * @param {string} [currentUserId] — for view tracking & owner viewers button
- */
 export default function StoryViewer({
   open,
   groups = [],
@@ -42,6 +34,7 @@ export default function StoryViewer({
   const [viewers, setViewers] = useState([]);
 
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
   const holdTimer = useRef(null);
   const viewedRef = useRef(new Set());
   const progressRaf = useRef(null);
@@ -51,7 +44,6 @@ export default function StoryViewer({
   const currentStory = currentGroup?.stories?.[sIdx];
   const totalInGroup = currentGroup?.stories?.length || 0;
 
-  // Record view once per story
   useEffect(() => {
     if (!open || !currentStory?._id) return;
     const id = String(currentStory._id);
@@ -94,8 +86,6 @@ export default function StoryViewer({
     }
   }, [sIdx, gIdx, groups]);
 
-  // Progress animation — images only (5s)
-  /* eslint-disable react-hooks/exhaustive-deps -- story identity via _id/mediaUrl */
   useEffect(() => {
     if (!open || !currentStory || paused) return;
     if (isVideoUrl(currentStory.mediaUrl)) return;
@@ -112,38 +102,50 @@ export default function StoryViewer({
       }
       progressRaf.current = requestAnimationFrame(tick);
     };
+
     progressRaf.current = requestAnimationFrame(tick);
     return () => {
       if (progressRaf.current) cancelAnimationFrame(progressRaf.current);
     };
   }, [open, currentStory?._id, currentStory?.mediaUrl, paused, goNext]);
 
-  // Video: progress + duration
   useEffect(() => {
-    const v = videoRef.current;
-    if (!open || !currentStory || !isVideoUrl(currentStory.mediaUrl)) return;
+    const video = videoRef.current;
+    if (!open || !currentStory || !isVideoUrl(currentStory.mediaUrl) || !video) return;
 
     const onTime = () => {
-      if (v.duration && !Number.isNaN(v.duration)) {
-        setProgress(v.currentTime / v.duration);
+      if (video.duration && !Number.isNaN(video.duration)) {
+        setProgress(video.currentTime / video.duration);
       }
     };
     const onEnded = () => goNext();
 
-    v.addEventListener('timeupdate', onTime);
-    v.addEventListener('ended', onEnded);
-    if (paused) v.pause();
-    else v.play().catch(() => {});
+    video.addEventListener('timeupdate', onTime);
+    video.addEventListener('ended', onEnded);
+    if (paused) video.pause();
+    else video.play().catch(() => {});
+
     return () => {
-      v.removeEventListener('timeupdate', onTime);
-      v.removeEventListener('ended', onEnded);
+      video.removeEventListener('timeupdate', onTime);
+      video.removeEventListener('ended', onEnded);
     };
   }, [open, currentStory?._id, currentStory?.mediaUrl, paused, goNext]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.pause();
+    audio.currentTime = 0;
+
+    if (!currentStory?.audioUrl || paused) return;
+    audio.play().catch(() => {});
+  }, [currentStory?._id, currentStory?.audioUrl, paused]);
 
   const handlePointerDown = () => {
     holdTimer.current = window.setTimeout(() => setPaused(true), 200);
   };
+
   const handlePointerUp = () => {
     if (holdTimer.current) clearTimeout(holdTimer.current);
     setPaused(false);
@@ -184,7 +186,6 @@ export default function StoryViewer({
 
   return (
     <div className="fixed inset-0 z-[80] bg-black flex flex-col">
-      {/* Progress */}
       <div className="absolute top-0 left-0 right-0 z-20 pt-safe pt-3 px-2 flex gap-0.5">
         {Array.from({ length: bars }).map((_, i) => (
           <div key={i} className="flex-1 h-0.5 bg-white/30 rounded overflow-hidden">
@@ -203,7 +204,6 @@ export default function StoryViewer({
         ))}
       </div>
 
-      {/* Header */}
       <div className="absolute top-8 left-0 right-0 z-20 flex items-center justify-between px-4 pt-2">
         <div className="flex items-center gap-2 min-w-0">
           <img
@@ -217,7 +217,7 @@ export default function StoryViewer({
             </div>
             <div className="text-white/70 text-xs">
               {timeAgo(currentStory.createdAt)}{' '}
-              {currentStory.audience === 'close_friends' ? ' · Close friends' : ''}
+              {currentStory.audience === 'close_friends' ? '| Close friends' : ''}
             </div>
           </div>
         </div>
@@ -240,12 +240,11 @@ export default function StoryViewer({
             className="text-white text-2xl leading-none px-2"
             aria-label="Close"
           >
-            ×
+            x
           </button>
         </div>
       </div>
 
-      {/* Tap zones + media */}
       <button
         type="button"
         className="absolute inset-0 z-10 cursor-default"
@@ -285,6 +284,17 @@ export default function StoryViewer({
         {currentStory.caption && !currentStory.overlayText ? (
           <div className="absolute bottom-20 left-4 right-4 z-[7] text-white/90 text-sm text-center pointer-events-none">
             {currentStory.caption}
+          </div>
+        ) : null}
+        {currentStory.audioUrl ? (
+          <div className="absolute left-4 right-4 bottom-6 z-[7]">
+            <audio
+              ref={audioRef}
+              src={currentStory.audioUrl}
+              controls
+              className="post-audio-player"
+              preload="metadata"
+            />
           </div>
         ) : null}
       </div>

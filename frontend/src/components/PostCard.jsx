@@ -17,6 +17,16 @@ function normalizeId(id) {
   return id ? String(id) : '';
 }
 
+function formatCommentTime(date) {
+  if (!date) return '';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export default function PostCard({
   post,
   currentUserId,
@@ -257,6 +267,19 @@ export default function PostCard({
           </div>
         ) : null}
 
+        {post.audioUrl ? (
+          <div className="post-audio">
+            <div className="post-audio-meta">
+              <span className="post-audio-badge">Music</span>
+              <div>
+                <div className="post-audio-title">{post.audioName || 'Attached track'}</div>
+                <div className="post-audio-note">Play the audio attached to this post.</div>
+              </div>
+            </div>
+            <audio src={post.audioUrl} controls className="post-audio-player" preload="metadata" />
+          </div>
+        ) : null}
+
         {collaboratorNames.length > 0 ? (
           <div className="post-meta-line">
             Collaborators: {collaboratorNames.join(', ')}
@@ -278,9 +301,21 @@ export default function PostCard({
         <div className="post-comments">
           {topComments.length > 0 ? (
             topComments.map((c, idx) => (
-              <div key={`${idx}-${c.createdAt || ''}`} className="post-comment">
-                <Link to={`/profile/${c.userId?._id || c.userId || ''}`}>{c.userId?.username || 'user'}</Link>
-                <span>{c.text}</span>
+              <div key={`${idx}-${c.createdAt || ''}`} className="post-comment post-comment-card">
+                <img
+                  src={c.userId?.profilePic || '/default-avatar.svg'}
+                  alt={c.userId?.username || 'user'}
+                  className="post-comment-avatar"
+                />
+                <div className="post-comment-content">
+                  <div className="post-comment-head">
+                    <Link to={`/profile/${c.userId?._id || c.userId || ''}`}>
+                      {c.userId?.username || 'user'}
+                    </Link>
+                    <span className="post-comment-time">{formatCommentTime(c.createdAt)}</span>
+                  </div>
+                  <span>{c.text}</span>
+                </div>
               </div>
             ))
           ) : (
@@ -357,7 +392,7 @@ export default function PostCard({
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm app-panel p-4">
             <div className="mb-3 flex justify-between">
-              <div className="font-semibold text-white">Likes</div>
+              <div className="user-modal-title">Likes</div>
               <button type="button" onClick={() => setLikesOpen(false)} className="app-link">
                 Close
               </button>
@@ -385,26 +420,43 @@ export default function PostCard({
 
       {commentsOpen ? (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md app-panel p-4">
-            <div className="mb-3 flex justify-between">
-              <div className="font-semibold text-white">Comments</div>
+          <div className="w-full max-w-lg app-panel p-4">
+            <div className="mb-3 flex justify-between items-center">
+              <div>
+                <div className="user-modal-title">Comments</div>
+                <div className="text-xs app-muted mt-1">
+                  {commentsList.length} {commentsList.length === 1 ? 'comment' : 'comments'}
+                </div>
+              </div>
               <button type="button" onClick={() => setCommentsOpen(false)} className="app-link">
                 Close
               </button>
             </div>
-            <div className="space-y-2 max-h-80 overflow-auto">
+            <div className="post-comments-modal max-h-80 overflow-auto">
               {commentsList.map((c, idx) => (
-                <div key={`${idx}-${c.createdAt || ''}`} className="text-sm text-white">
-                  {c.user ? (
-                    <Link
-                      to={`/profile/${c.user.userId}`}
-                      onClick={() => setCommentsOpen(false)}
-                      className="font-semibold hover:underline mr-1 text-white"
-                    >
-                      {c.user.username}
-                    </Link>
-                  ) : null}
-                  {c.text}
+                <div key={`${idx}-${c.createdAt || ''}`} className="post-comment-row">
+                  <img
+                    src={c.user?.profilePic || '/default-avatar.svg'}
+                    alt={c.user?.username || 'user'}
+                    className="post-comment-avatar"
+                  />
+                  <div className="post-comment-content">
+                    <div className="post-comment-head">
+                      {c.user ? (
+                        <Link
+                          to={`/profile/${c.user.userId}`}
+                          onClick={() => setCommentsOpen(false)}
+                          className="font-semibold hover:underline"
+                        >
+                          {c.user.username}
+                        </Link>
+                      ) : (
+                        <span className="font-semibold">user</span>
+                      )}
+                      <span className="post-comment-time">{formatCommentTime(c.createdAt)}</span>
+                    </div>
+                    <div className="text-sm">{c.text}</div>
+                  </div>
                 </div>
               ))}
             </div>

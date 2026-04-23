@@ -55,11 +55,26 @@ export default function HomeFeedPage() {
 
   useEffect(() => {
     fetchFeed();
-  }, [page]);
+  }, [page, user?.id, (user?.followingIds || []).join(',')]);
 
   useEffect(() => {
     loadStoryGroups();
   }, []);
+
+  useEffect(() => {
+    function handleVisibleRefresh() {
+      if (document.visibilityState === 'visible') {
+        fetchFeed();
+      }
+    }
+
+    window.addEventListener('focus', fetchFeed);
+    document.addEventListener('visibilitychange', handleVisibleRefresh);
+    return () => {
+      window.removeEventListener('focus', fetchFeed);
+      document.removeEventListener('visibilitychange', handleVisibleRefresh);
+    };
+  }, [page, user?.id, (user?.followingIds || []).join(',')]);
 
   function replacePost(updatedPost) {
     setPosts((prev) =>

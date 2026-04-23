@@ -5,6 +5,8 @@ import './app-ui.css';
 export default function StoryComposer({ open, onClose, onSuccess }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioPreview, setAudioPreview] = useState('');
   const [caption, setCaption] = useState('');
   const [overlayText, setOverlayText] = useState('');
   const [audience, setAudience] = useState('public');
@@ -15,6 +17,8 @@ export default function StoryComposer({ open, onClose, onSuccess }) {
   function reset() {
     setFile(null);
     setPreview('');
+    setAudioFile(null);
+    setAudioPreview('');
     setCaption('');
     setOverlayText('');
     setAudience('public');
@@ -36,6 +40,14 @@ export default function StoryComposer({ open, onClose, onSuccess }) {
     setError(null);
   }
 
+  function onPickAudio(e) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setAudioFile(f);
+    setAudioPreview(URL.createObjectURL(f));
+    setError(null);
+  }
+
   async function handleSubmit() {
     if (!file || submitting || submitLock.current) return;
     submitLock.current = true;
@@ -46,6 +58,7 @@ export default function StoryComposer({ open, onClose, onSuccess }) {
         caption,
         overlayText,
         audience: audience === 'close_friends' ? 'close_friends' : 'public',
+        audioFile,
       });
       reset();
       onSuccess?.();
@@ -139,6 +152,30 @@ export default function StoryComposer({ open, onClose, onSuccess }) {
                 className="app-soft-input"
               />
             </label>
+
+            <div className="story-field">
+              <span className="story-field-label">Music</span>
+              <label className="create-post-audio-picker">
+                <input
+                  type="file"
+                  accept="audio/*"
+                  className="hidden"
+                  onChange={onPickAudio}
+                />
+                <span>{audioFile ? 'Change music' : 'Add music to story'}</span>
+              </label>
+              {audioFile ? (
+                <div className="create-post-audio-card">
+                  <div>
+                    <div className="create-post-audio-name">{audioFile.name}</div>
+                    <div className="create-post-audio-meta">Your story will carry this audio track.</div>
+                  </div>
+                  {audioPreview ? (
+                    <audio src={audioPreview} controls className="create-post-audio-player" />
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
 
             <div className="story-field">
               <span className="story-field-label">Audience</span>

@@ -603,9 +603,100 @@
   line-height: 1.45;
 }
 
+.post-comment-card,
+.post-comment-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.post-comment-card {
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .post-comment a {
   margin-right: 6px;
   font-weight: 700;
+}
+
+.post-comment-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-comment-content {
+  min-width: 0;
+}
+
+.post-comment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.post-comment-time {
+  color: #97a4c2;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.post-comments-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.post-audio {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.post-audio-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.post-audio-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(244, 0, 125, 0.16);
+  color: #ff9bca;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.post-audio-title {
+  color: #f3f6ff;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.post-audio-note {
+  color: #97a4c2;
+  font-size: 0.78rem;
+}
+
+.post-audio-player,
+.create-post-audio-player {
+  width: 100%;
 }
 
 .post-comment-form {
@@ -1050,10 +1141,50 @@
   line-height: 1.5;
 }
 
+.create-post-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .create-post-schedule {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+}
+
+.create-post-audio-picker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px dashed rgba(127, 143, 191, 0.48);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #eef2ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.create-post-audio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.create-post-audio-name {
+  color: #f3f6ff;
+  font-weight: 700;
+}
+
+.create-post-audio-meta {
+  margin-top: 4px;
+  color: #97a4c2;
+  font-size: 0.8rem;
 }
 
 :root.light .user-modal-header,
@@ -1080,6 +1211,25 @@
 :root.light .create-post-option {
   color: #171b27;
   background: rgba(244, 0, 125, 0.06);
+}
+
+:root.light .post-comment-card,
+:root.light .post-audio,
+:root.light .create-post-audio-card,
+:root.light .create-post-audio-picker {
+  background: rgba(245, 247, 252, 0.82);
+}
+
+:root.light .post-comment-time,
+:root.light .post-audio-note,
+:root.light .create-post-audio-meta {
+  color: #5e6a86;
+}
+
+:root.light .post-audio-title,
+:root.light .create-post-audio-name,
+:root.light .create-post-audio-picker {
+  color: #171b27;
 }
 
 @media (max-width: 1180px) {
@@ -1161,6 +1311,7 @@
   }
 
   .story-audience-grid,
+  .create-post-mode-grid,
   .create-post-schedule {
     grid-template-columns: 1fr;
   }

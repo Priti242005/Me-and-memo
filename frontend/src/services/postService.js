@@ -3,6 +3,7 @@ import api from './api';
 export async function createPost({
   caption,
   mediaFile,
+  audioFile,
   unlockDate,
   unlockTime,
   unlockAmPm,
@@ -10,6 +11,7 @@ export async function createPost({
   const formData = new FormData();
   if (caption) formData.append('caption', caption);
   formData.append('media', mediaFile);
+  if (audioFile) formData.append('audio', audioFile);
   if (unlockDate) formData.append('unlockDate', unlockDate);
   if (unlockTime) formData.append('unlockTime', unlockTime);
   if (unlockAmPm) formData.append('unlockAmPm', unlockAmPm);
@@ -83,4 +85,3 @@ export async function rejectCollaboration(postId) {
   const res = await api.post(`/posts/${postId}/collab/reject`);
   return res.data;
 }
-

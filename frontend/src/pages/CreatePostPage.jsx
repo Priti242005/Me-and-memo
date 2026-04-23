@@ -9,8 +9,11 @@ export default function CreatePostPage() {
   const [caption, setCaption] = useState('');
   const [mediaFile, setMediaFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [publishMode, setPublishMode] = useState('now');
   const [unlockDate, setUnlockDate] = useState('');
   const [unlockTime, setUnlockTime] = useState('');
   const [unlockAmPm, setUnlockAmPm] = useState('AM');
@@ -34,6 +37,15 @@ export default function CreatePostPage() {
     if (f) setPreviewUrl(URL.createObjectURL(f));
   }
 
+  function handleAudioChange(e) {
+    const f = e.target.files?.[0] || null;
+    setAudioFile(f);
+
+    if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+    if (f) setAudioPreviewUrl(URL.createObjectURL(f));
+    else setAudioPreviewUrl(null);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -45,10 +57,12 @@ export default function CreatePostPage() {
 
     try {
       setSubmitting(true);
-      const hasSchedule = Boolean(unlockDate?.trim() && unlockTime?.trim());
+      const hasSchedule =
+        publishMode === 'schedule' && Boolean(unlockDate?.trim() && unlockTime?.trim());
       await createPost({
         caption,
         mediaFile,
+        audioFile,
         unlockDate: hasSchedule ? unlockDate : undefined,
         unlockTime: hasSchedule ? unlockTime : undefined,
         unlockAmPm: hasSchedule ? unlockAmPm : undefined,
@@ -113,6 +127,33 @@ export default function CreatePostPage() {
             </div>
 
             <div className="create-post-card">
+              <div className="create-post-block-title">Music</div>
+              <p className="create-post-help">
+                Add an optional track so your post can carry music when viewers open it.
+              </p>
+              <label className="create-post-audio-picker">
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleAudioChange}
+                  className="hidden"
+                />
+                <span>{audioFile ? 'Choose a different track' : 'Add music track'}</span>
+              </label>
+              {audioFile ? (
+                <div className="create-post-audio-card">
+                  <div>
+                    <div className="create-post-audio-name">{audioFile.name}</div>
+                    <div className="create-post-audio-meta">Music will be attached to this post.</div>
+                  </div>
+                  {audioPreviewUrl ? (
+                    <audio src={audioPreviewUrl} controls className="create-post-audio-player" />
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="create-post-card">
               <div className="create-post-block-title">Caption ideas</div>
               <p className="create-post-help">Describe the vibe and generate caption options you can reuse instantly.</p>
               <input
@@ -160,49 +201,73 @@ export default function CreatePostPage() {
             </div>
 
             <div className="create-post-card">
-              <div className="create-post-block-title">Schedule post</div>
+              <div className="create-post-block-title">Publish mode</div>
               <p className="create-post-help">
-                Leave this empty to publish now, or choose a future date and time to unlock it later.
+                Choose whether this post should go live right now or unlock on a schedule.
               </p>
-              <div className="create-post-schedule">
-                <div>
-                  <label className="story-field-label">Date</label>
-                  <input
-                    type="date"
-                    value={unlockDate}
-                    onChange={(e) => setUnlockDate(e.target.value)}
-                    className="app-soft-input"
-                  />
-                </div>
-                <div>
-                  <label className="story-field-label">Time</label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="e.g. 9:30 or 11.28"
-                    value={unlockTime}
-                    onChange={(e) => setUnlockTime(e.target.value)}
-                    className="app-soft-input"
-                  />
-                </div>
-                <div>
-                  <label className="story-field-label">AM / PM</label>
-                  <select
-                    value={unlockAmPm}
-                    onChange={(e) => setUnlockAmPm(e.target.value)}
-                    className="app-soft-select"
-                  >
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                  </select>
-                </div>
+              <div className="create-post-mode-grid">
+                <button
+                  type="button"
+                  onClick={() => setPublishMode('now')}
+                  className={`story-audience-card ${publishMode === 'now' ? 'is-active' : ''}`}
+                >
+                  <strong>Post now</strong>
+                  <span>Share immediately to your feed and profile.</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPublishMode('schedule')}
+                  className={`story-audience-card ${publishMode === 'schedule' ? 'is-active' : ''}`}
+                >
+                  <strong>Schedule post</strong>
+                  <span>Set a future date and time for this memory to unlock.</span>
+                </button>
               </div>
+              {publishMode === 'schedule' ? (
+                <div className="create-post-schedule">
+                  <div>
+                    <label className="story-field-label">Date</label>
+                    <input
+                      type="date"
+                      value={unlockDate}
+                      onChange={(e) => setUnlockDate(e.target.value)}
+                      className="app-soft-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="story-field-label">Time</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="e.g. 9:30 or 11.28"
+                      value={unlockTime}
+                      onChange={(e) => setUnlockTime(e.target.value)}
+                      className="app-soft-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="story-field-label">AM / PM</label>
+                    <select
+                      value={unlockAmPm}
+                      onChange={(e) => setUnlockAmPm(e.target.value)}
+                      className="app-soft-select"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             {error ? <div className="text-sm app-danger">{error}</div> : null}
 
             <button type="submit" disabled={submitting} className="app-soft-button">
-              {submitting ? 'Uploading...' : 'Publish Post'}
+              {submitting
+                ? 'Uploading...'
+                : publishMode === 'schedule'
+                  ? 'Schedule Post'
+                  : 'Post Now'}
             </button>
           </div>
         </div>
