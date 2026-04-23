@@ -19,6 +19,7 @@ export default function InlineMusicPlayer({
   title,
   subtitle = 'Original audio',
   autoPlay = false,
+  hoverToPlay = false,
   className = '',
   compact = false,
 }) {
@@ -69,20 +70,37 @@ export default function InlineMusicPlayer({
     };
   }, [audioUrl, autoPlay]);
 
+  function playAudio() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.play().catch(() => {});
+  }
+
+  function pauseAudio() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+  }
+
   function togglePlayback() {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) {
-      audio.play().catch(() => {});
-    } else {
-      audio.pause();
-    }
+    if (audio.paused) playAudio();
+    else pauseAudio();
   }
 
   if (!audioUrl) return null;
 
   return (
-    <div className={`inline-music ${compact ? 'is-compact' : ''} ${className}`.trim()}>
+    <div
+      className={`inline-music ${compact ? 'is-compact' : ''} ${className}`.trim()}
+      onMouseEnter={() => {
+        if (hoverToPlay) playAudio();
+      }}
+      onMouseLeave={() => {
+        if (hoverToPlay) pauseAudio();
+      }}
+    >
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
       <button
         type="button"

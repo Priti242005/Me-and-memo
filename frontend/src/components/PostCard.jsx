@@ -196,6 +196,7 @@ export default function PostCard({
             subtitle={`${post.userId?.username || 'User'} added music`}
             className="post-music-overlay"
             compact
+            hoverToPlay
           />
         ) : null}
 
