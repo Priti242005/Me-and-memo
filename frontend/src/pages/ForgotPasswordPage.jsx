@@ -9,6 +9,8 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sent, setSent] = useState(false);
+  const [serverMessage, setServerMessage] = useState('');
+  const [devOtp, setDevOtp] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,7 +19,9 @@ export default function ForgotPasswordPage() {
 
     try {
       setLoading(true);
-      await forgotPassword(email.trim());
+      const data = await forgotPassword(email.trim());
+      setServerMessage(data?.message || 'OTP sent. Continue to reset password.');
+      setDevOtp(data?.otp || '');
       setSent(true);
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to send reset OTP.');
@@ -49,7 +53,12 @@ export default function ForgotPasswordPage() {
         {error ? <p className="auth-message error">{error}</p> : null}
         {sent ? (
           <p className="auth-message success">
-            OTP sent. Continue to reset password.
+            {serverMessage || 'OTP sent. Continue to reset password.'}
+          </p>
+        ) : null}
+        {devOtp ? (
+          <p className="auth-message success">
+            Demo OTP: <strong>{devOtp}</strong>
           </p>
         ) : null}
 

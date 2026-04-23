@@ -34,7 +34,12 @@ export default function SignupPage() {
         bio: bio.trim(),
         profilePic: profilePic.trim(),
       });
-      navigate(`/verify-email?email=${encodeURIComponent(res.email || email.trim())}`);
+      const params = new URLSearchParams({
+        email: res.email || email.trim(),
+      });
+      if (res?.message) params.set('message', res.message);
+      if (res?.otp) params.set('otp', res.otp);
+      navigate(`/verify-email?${params.toString()}`);
     } catch (err) {
       setLocalError(err?.response?.data?.message || 'Signup failed.');
     } finally {

@@ -14,9 +14,11 @@ export default function VerifyEmailPage() {
   const { setTokenDirect } = useAuth();
   const query = useQuery();
   const presetEmail = query.get('email') || '';
+  const presetMessage = query.get('message') || '';
+  const presetOtp = query.get('otp') || '';
 
   const [email, setEmail] = useState(presetEmail);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(presetOtp);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -48,6 +50,12 @@ export default function VerifyEmailPage() {
         <p className="auth-subtitle">
           Enter the 6-digit OTP we sent to your email. It expires in 5 minutes.
         </p>
+        {presetMessage ? <p className="auth-message success">{presetMessage}</p> : null}
+        {presetOtp ? (
+          <p className="auth-message success">
+            Demo OTP: <strong>{presetOtp}</strong>
+          </p>
+        ) : null}
 
         <label className="auth-field">
           <span className="auth-label">Email</span>

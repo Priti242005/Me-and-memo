@@ -3,7 +3,6 @@ const AppError = require('../middleware/AppError');
 const User = require('../models/User');
 const { signAccessToken } = require('../config/jwt');
 const { BCRYPT_SALT_ROUNDS } = require('../config/env');
-const { sendEmail } = require('../config/mailer');
 const { sendEmail: sendOtpEmail } = require('../utils/sendEmail');
 const { generateOtp, hashOtp, minutesFromNow } = require('../utils/otp');
 
@@ -153,12 +152,16 @@ async function signup(req, res) {
   }
 
   try {
-    await sendOtpEmail({
+    const info = await sendOtpEmail({
       to: user.email,
       subject: 'Your OTP Code',
       html: `<h2>Your OTP is: ${otp}</h2>`,
       text: `Your Me & Memo verification OTP is: ${otp}\n\nThis code expires in 5 minutes.`,
     });
+
+    if (!info?.accepted?.includes(user.email)) {
+      throw new Error('Signup OTP email was not accepted');
+    }
   } catch (error) {
     console.log('OTP (EMAIL FALLBACK):', otp);
     return res.status(200).json({
@@ -299,12 +302,16 @@ async function forgotPassword(req, res) {
   }
 
   try {
-    await sendOtpEmail({
+    const info = await sendOtpEmail({
       to: user.email,
       subject: 'Reset Password OTP',
       html: `<h2>Your Reset OTP is: ${otp}</h2>`,
       text: `Your Me & Memo password reset OTP is: ${otp}\n\nThis code expires in 5 minutes.`,
     });
+
+    if (!info?.accepted?.includes(user.email)) {
+      throw new Error('Reset OTP email was not accepted');
+    }
   } catch (error) {
     console.log('RESET OTP:', otp);
     return res.status(200).json({
