@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getStoryViewers, recordStoryView } from '../services/storyService';
+import InlineMusicPlayer from './InlineMusicPlayer';
 
 function isVideoUrl(url) {
   return /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(String(url || ''));
@@ -34,7 +35,6 @@ export default function StoryViewer({
   const [viewers, setViewers] = useState([]);
 
   const videoRef = useRef(null);
-  const audioRef = useRef(null);
   const holdTimer = useRef(null);
   const viewedRef = useRef(new Set());
   const progressRaf = useRef(null);
@@ -130,17 +130,6 @@ export default function StoryViewer({
       video.removeEventListener('ended', onEnded);
     };
   }, [open, currentStory?._id, currentStory?.mediaUrl, paused, goNext]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.pause();
-    audio.currentTime = 0;
-
-    if (!currentStory?.audioUrl || paused) return;
-    audio.play().catch(() => {});
-  }, [currentStory?._id, currentStory?.audioUrl, paused]);
 
   const handlePointerDown = () => {
     holdTimer.current = window.setTimeout(() => setPaused(true), 200);
@@ -281,20 +270,19 @@ export default function StoryViewer({
             </span>
           </div>
         ) : null}
+        {currentStory.audioUrl ? (
+          <InlineMusicPlayer
+            audioUrl={currentStory.audioUrl}
+            title={currentStory.audioName}
+            subtitle={`${currentGroup.user?.username || 'User'} story track`}
+            className="story-music-overlay"
+            compact
+            autoPlay={!paused}
+          />
+        ) : null}
         {currentStory.caption && !currentStory.overlayText ? (
           <div className="absolute bottom-20 left-4 right-4 z-[7] text-white/90 text-sm text-center pointer-events-none">
             {currentStory.caption}
-          </div>
-        ) : null}
-        {currentStory.audioUrl ? (
-          <div className="absolute left-4 right-4 bottom-6 z-[7]">
-            <audio
-              ref={audioRef}
-              src={currentStory.audioUrl}
-              controls
-              className="post-audio-player"
-              preload="metadata"
-            />
           </div>
         ) : null}
       </div>

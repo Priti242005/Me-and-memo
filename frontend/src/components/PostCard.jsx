@@ -6,6 +6,7 @@ import {
   acceptCollaboration,
   rejectCollaboration,
 } from '../services/postService';
+import InlineMusicPlayer from './InlineMusicPlayer';
 import './app-ui.css';
 
 function isVideoUrl(url) {
@@ -188,6 +189,16 @@ export default function PostCard({
           </div>
         ) : null}
 
+        {post.audioUrl && !isLocked ? (
+          <InlineMusicPlayer
+            audioUrl={post.audioUrl}
+            title={post.audioName}
+            subtitle={`${post.userId?.username || 'User'} added music`}
+            className="post-music-overlay"
+            compact
+          />
+        ) : null}
+
         {mediaIsVideo ? (
           <video
             src={post.mediaUrl}
@@ -264,19 +275,6 @@ export default function PostCard({
           <div className="post-caption">
             <strong>{post.userId?.username || ''}</strong>
             {post.caption}
-          </div>
-        ) : null}
-
-        {post.audioUrl ? (
-          <div className="post-audio">
-            <div className="post-audio-meta">
-              <span className="post-audio-badge">Music</span>
-              <div>
-                <div className="post-audio-title">{post.audioName || 'Attached track'}</div>
-                <div className="post-audio-note">Play the audio attached to this post.</div>
-              </div>
-            </div>
-            <audio src={post.audioUrl} controls className="post-audio-player" preload="metadata" />
           </div>
         ) : null}
 
