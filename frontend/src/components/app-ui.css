@@ -658,7 +658,6 @@
   position: absolute;
   left: 14px;
   z-index: 12;
-  max-width: min(360px, calc(100% - 28px));
 }
 
 .post-music-overlay {
@@ -667,6 +666,40 @@
 
 .story-music-overlay {
   top: 82px;
+}
+
+.inline-music-icon-wrap {
+  display: inline-flex;
+}
+
+.inline-music-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(13, 16, 24, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.inline-music-icon:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.inline-music-icon.is-playing {
+  background: linear-gradient(180deg, #ff7a18 0%, #ff2f93 100%);
+}
+
+.inline-music-icon-note {
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .inline-music {
@@ -1364,6 +1397,12 @@
 :root.light .inline-music {
   background: rgba(255, 255, 255, 0.78);
   border-color: rgba(211, 220, 239, 0.95);
+}
+
+:root.light .inline-music-icon {
+  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(211, 220, 239, 0.95);
+  color: #171b27;
 }
 
 :root.light .inline-music-title {

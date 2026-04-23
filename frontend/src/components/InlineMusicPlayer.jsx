@@ -20,6 +20,7 @@ export default function InlineMusicPlayer({
   subtitle = 'Original audio',
   autoPlay = false,
   hoverToPlay = false,
+  iconOnly = false,
   className = '',
   compact = false,
 }) {
@@ -90,6 +91,36 @@ export default function InlineMusicPlayer({
   }
 
   if (!audioUrl) return null;
+
+  if (iconOnly) {
+    return (
+      <div
+        className={`inline-music-icon-wrap ${className}`.trim()}
+        onMouseEnter={() => {
+          if (hoverToPlay) playAudio();
+        }}
+        onMouseLeave={() => {
+          if (hoverToPlay) pauseAudio();
+        }}
+      >
+        <audio ref={audioRef} src={audioUrl} preload="metadata" />
+        <button
+          type="button"
+          className={`inline-music-icon ${playing ? 'is-playing' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePlayback();
+          }}
+          aria-label={playing ? 'Pause music' : 'Play music'}
+          title={resolvedTitle || subtitle}
+          >
+            <span className="inline-music-icon-note" aria-hidden>
+              {playing ? 'II' : 'M'}
+            </span>
+          </button>
+      </div>
+    );
+  }
 
   return (
     <div
