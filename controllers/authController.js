@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const AppError = require('../middleware/AppError');
 const User = require('../models/User');
 const { signAccessToken } = require('../config/jwt');
-const { BCRYPT_SALT_ROUNDS } = require('../config/env');
+const { BCRYPT_SALT_ROUNDS, NODE_ENV } = require('../config/env');
 const { sendEmail: sendOtpEmail } = require('../utils/sendEmail');
 const { generateOtp, hashOtp, minutesFromNow } = require('../utils/otp');
 
@@ -37,6 +37,17 @@ function safeUserPayload(userDoc) {
 function isVerified(userDoc) {
   // Backwards compatible: old users may not have isVerified field.
   return userDoc.isVerified !== false;
+}
+
+function isEmailConfigured() {
+  return Boolean(
+    String(process.env.EMAIL_USER || '').trim() &&
+    String(process.env.EMAIL_PASS || '').trim()
+  );
+}
+
+function canUseDemoOtp() {
+  return NODE_ENV !== 'production';
 }
 
 async function register(req, res) {
@@ -142,13 +153,18 @@ async function signup(req, res) {
     otpExpiry: minutesFromNow(5),
   });
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log('OTP (DEV MODE):', otp);
-    return res.status(200).json({
-      message: 'OTP generated (check server console)',
-      otp,
-      email: user.email,
-    });
+  if (!isEmailConfigured()) {
+    if (canUseDemoOtp()) {
+      console.log('OTP (DEV MODE):', otp);
+      return res.status(200).json({
+        message: 'OTP generated (check server console)',
+        otp,
+        email: user.email,
+      });
+    }
+
+    await user.deleteOne();
+    throw new AppError('Email service is not configured. OTP email could not be sent.', 503);
   }
 
   try {
@@ -163,12 +179,17 @@ async function signup(req, res) {
       throw new Error('Signup OTP email was not accepted');
     }
   } catch (error) {
-    console.log('OTP (EMAIL FALLBACK):', otp);
-    return res.status(200).json({
-      message: 'OTP generated (check server console)',
-      otp,
-      email: user.email,
-    });
+    if (canUseDemoOtp()) {
+      console.log('OTP (EMAIL FALLBACK):', otp);
+      return res.status(200).json({
+        message: 'OTP generated (check server console)',
+        otp,
+        email: user.email,
+      });
+    }
+
+    await user.deleteOne();
+    throw new AppError('Unable to send verification OTP email right now. Please try again later.', 503);
   }
 
   return res.status(201).json({
@@ -231,11 +252,40 @@ async function sendLoginOtp(req, res) {
   user.otpExpiry = minutesFromNow(5);
   await user.save();
 
-  await sendEmail({
-    to: user.email,
-    subject: 'Your login OTP',
-    text: `Your Me & Memo login OTP is: ${otp}\n\nThis code expires in 5 minutes.`,
-  });
+  if (!isEmailConfigured()) {
+    if (canUseDemoOtp()) {
+      console.log('LOGIN OTP (DEV MODE):', otp);
+      return res.status(200).json({ message: 'OTP generated (check server console)', otp });
+    }
+
+    user.otp = '';
+    user.otpExpiry = null;
+    await user.save();
+    throw new AppError('Email service is not configured. Login OTP could not be sent.', 503);
+  }
+
+  try {
+    const info = await sendOtpEmail({
+      to: user.email,
+      subject: 'Your login OTP',
+      text: `Your Me & Memo login OTP is: ${otp}\n\nThis code expires in 5 minutes.`,
+      html: `<h2>Your login OTP is: ${otp}</h2>`,
+    });
+
+    if (!info?.accepted?.includes(user.email)) {
+      throw new Error('Login OTP email was not accepted');
+    }
+  } catch (error) {
+    if (canUseDemoOtp()) {
+      console.log('LOGIN OTP (EMAIL FALLBACK):', otp);
+      return res.status(200).json({ message: 'OTP generated (check server console)', otp });
+    }
+
+    user.otp = '';
+    user.otpExpiry = null;
+    await user.save();
+    throw new AppError('Unable to send login OTP email right now. Please try again later.', 503);
+  }
 
   return res.status(200).json({ message: 'OTP sent to email' });
 }
@@ -293,12 +343,19 @@ async function forgotPassword(req, res) {
   user.resetPasswordExpiry = minutesFromNow(5);
   await user.save();
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log('RESET OTP:', otp);
-    return res.status(200).json({
-      message: 'OTP generated (check console)',
-      otp,
-    });
+  if (!isEmailConfigured()) {
+    if (canUseDemoOtp()) {
+      console.log('RESET OTP:', otp);
+      return res.status(200).json({
+        message: 'OTP generated (check console)',
+        otp,
+      });
+    }
+
+    user.resetPasswordToken = '';
+    user.resetPasswordExpiry = null;
+    await user.save();
+    throw new AppError('Email service is not configured. Reset OTP could not be sent.', 503);
   }
 
   try {
@@ -313,11 +370,18 @@ async function forgotPassword(req, res) {
       throw new Error('Reset OTP email was not accepted');
     }
   } catch (error) {
-    console.log('RESET OTP:', otp);
-    return res.status(200).json({
-      message: 'OTP generated (check console)',
-      otp,
-    });
+    if (canUseDemoOtp()) {
+      console.log('RESET OTP:', otp);
+      return res.status(200).json({
+        message: 'OTP generated (check console)',
+        otp,
+      });
+    }
+
+    user.resetPasswordToken = '';
+    user.resetPasswordExpiry = null;
+    await user.save();
+    throw new AppError('Unable to send reset OTP email right now. Please try again later.', 503);
   }
 
   return res.status(200).json({ message: 'Password reset OTP sent' });
