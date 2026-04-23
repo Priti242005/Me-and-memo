@@ -39,6 +39,7 @@ export default function PostCard({
   onPostUpdated,
 }) {
   const [commentText, setCommentText] = useState('');
+  const [mediaHover, setMediaHover] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [collabInput, setCollabInput] = useState('');
   const [collabLoading, setCollabLoading] = useState(false);
@@ -176,7 +177,11 @@ export default function PostCard({
         </button>
       </div>
 
-      <div className="post-card-media-wrap">
+      <div
+        className="post-card-media-wrap"
+        onMouseEnter={() => setMediaHover(true)}
+        onMouseLeave={() => setMediaHover(false)}
+      >
         {isLocked ? (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/55 px-4 text-center text-white">
             <div className="text-2xl" aria-hidden>Locked</div>
@@ -195,7 +200,8 @@ export default function PostCard({
             title={post.audioName}
             subtitle={`${post.userId?.username || 'User'} added music`}
             className="post-music-overlay"
-            hoverToPlay
+            hoverToPlay={false}
+            active={mediaHover}
             iconOnly
           />
         ) : null}

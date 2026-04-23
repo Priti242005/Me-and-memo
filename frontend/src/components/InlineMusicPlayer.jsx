@@ -20,6 +20,7 @@ export default function InlineMusicPlayer({
   subtitle = 'Original audio',
   autoPlay = false,
   hoverToPlay = false,
+  active = false,
   iconOnly = false,
   className = '',
   compact = false,
@@ -57,7 +58,7 @@ export default function InlineMusicPlayer({
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
 
-    if (autoPlay) {
+    if (autoPlay || active) {
       audio.play().catch(() => {});
     }
 
@@ -69,7 +70,19 @@ export default function InlineMusicPlayer({
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [audioUrl, autoPlay]);
+  }, [audioUrl, autoPlay, active]);
+
+  useEffect(() => {
+    if (!audioUrl) return;
+    if (!active) return;
+    playAudio();
+  }, [active, audioUrl]);
+
+  useEffect(() => {
+    if (!audioUrl) return;
+    if (active) return;
+    if (hoverToPlay) pauseAudio();
+  }, [active, hoverToPlay, audioUrl]);
 
   function playAudio() {
     const audio = audioRef.current;
@@ -97,10 +110,10 @@ export default function InlineMusicPlayer({
       <div
         className={`inline-music-icon-wrap ${className}`.trim()}
         onMouseEnter={() => {
-          if (hoverToPlay) playAudio();
+          if (hoverToPlay && !active) playAudio();
         }}
         onMouseLeave={() => {
-          if (hoverToPlay) pauseAudio();
+          if (hoverToPlay && !active) pauseAudio();
         }}
       >
         <audio ref={audioRef} src={audioUrl} preload="metadata" />
